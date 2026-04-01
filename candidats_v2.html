@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — Candidats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--border2:#D8DBE5;
+  --text:#1e293b;--text2:#334155;--muted:#94a3b8;--muted2:#64748b;
+  --accent:#f97316;--green:#22c55e;--green2:#16a34a;--blue:#3b82f6;
+  --amber:#f59e0b;--red:#ef4444;--purple:#a855f7;--cyan:#06b6d4;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",monospace;
+  --r:8px;--r-lg:12px;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --top-h:54px;--side-w:280px;
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button,input,select,textarea{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;z-index:100;}
+.tb-back{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;transition:all .12s;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;color:var(--text);}
+.tb-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.btn{padding:7px 14px;border-radius:6px;cursor:pointer;border:none;font-size:12px;font-weight:500;transition:opacity .12s;white-space:nowrap;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-ghost{background:var(--white);border:1px solid var(--border2);color:var(--muted2);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);opacity:1;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* LAYOUT 3 COL */
+.layout{position:fixed;top:var(--top-h);left:0;right:0;bottom:0;display:flex;}
+
+/* LEFT — liste vivier */
+.side-left{width:var(--side-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.sl-header{padding:10px 12px;border-bottom:1px solid var(--border);}
+.sl-search{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);color:var(--text);outline:none;margin-bottom:8px;}
+.sl-search:focus{border-color:var(--accent);}
+.sl-filters{display:flex;gap:4px;flex-wrap:wrap;}
+.sf{padding:3px 8px;font-size:10px;font-weight:500;border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--muted2);background:transparent;font-family:var(--mono);transition:all .12s;}
+.sf:hover{border-color:var(--muted);}
+.sf.on{border-color:var(--accent);color:var(--accent);background:#FFF4EE;}
+.sl-pool{display:flex;border-bottom:1px solid var(--border);}
+.pool-tab{flex:1;padding:6px 0;text-align:center;font-size:10px;font-weight:600;cursor:pointer;color:var(--muted);font-family:var(--mono);border-bottom:2px solid transparent;transition:all .12s;}
+.pool-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.sl-list{flex:1;overflow-y:auto;}
+.cand-row{padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.cand-row:hover{background:#FAFBFF;}
+.cand-row.sel{background:#FFF4EE;}
+.cand-row.sel .cr-nom{color:var(--accent);}
+.cr-nom{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;}
+.cr-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.cr-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.db{display:inline-block;padding:2px 6px;border-radius:10px;font-size:9px;font-weight:600;font-family:var(--mono);white-space:nowrap;}
+.db-dispo{background:#DCFCE7;color:#15803d;}
+.db-mission{background:#DBEAFE;color:#1d4ed8;}
+.db-preavis{background:#ECFEFF;color:#0e7490;}
+.db-indispo{background:#F1F5F9;color:#64748b;}
+.db-veille{background:#F3E8FF;color:#7c3aed;}
+.sl-empty{padding:20px;text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono);}
+.sl-count{font-size:9px;color:var(--muted);font-family:var(--mono);padding:4px 12px;background:#F8F9FB;border-bottom:1px solid var(--border);}
+
+/* CENTER — fiche candidat */
+.fiche{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.fiche-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--white);overflow-x:auto;flex-shrink:0;}
+.fiche-tab{padding:10px 16px;font-size:11px;font-weight:500;cursor:pointer;color:var(--muted2);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .12s;}
+.fiche-tab:hover{color:var(--text);}
+.fiche-tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.fiche-body{flex:1;overflow-y:auto;padding:16px 20px;}
+
+/* Fiche actions header */
+.fiche-hd{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;}
+.fiche-hd-nom{font-size:15px;font-weight:600;flex:1;}
+.fiche-hd-sub{font-size:11px;color:var(--muted2);}
+.fiche-hd-acts{display:flex;gap:5px;}
+
+/* Fields */
+.f-section{margin-bottom:20px;}
+.f-section-t{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.f-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.f-field{display:flex;flex-direction:column;gap:2px;}
+.f-field.full{grid-column:1/-1;}
+.f-label{font-size:9px;color:var(--muted);font-family:var(--mono);font-weight:500;letter-spacing:.3px;text-transform:uppercase;}
+.f-val{font-size:12px;color:var(--text2);}
+.f-inp{
+  background:var(--bg);border:1px solid transparent;color:var(--text);
+  padding:6px 8px;border-radius:var(--r);font-size:12px;width:100%;
+  transition:border .12s;
+}
+.f-inp:hover{border-color:var(--border);}
+.f-inp:focus{border-color:var(--accent);outline:none;background:var(--white);}
+select.f-inp{cursor:pointer;}
+textarea.f-inp{resize:vertical;min-height:60px;}
+
+/* Statut dispo buttons */
+.dispo-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.dispo-btn{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:2px solid;transition:all .12s;font-family:var(--mono);}
+.dispo-btn.on-dispo{background:#DCFCE7;color:#15803d;border-color:#22c55e;}
+.dispo-btn.on-mission{background:#DBEAFE;color:#1d4ed8;border-color:#3b82f6;}
+.dispo-btn.on-preavis{background:#ECFEFF;color:#0e7490;border-color:#06b6d4;}
+.dispo-btn.on-indispo{background:#F1F5F9;color:#64748b;border-color:#94a3b8;}
+.dispo-btn:not(.on-dispo):not(.on-mission):not(.on-preavis):not(.on-indispo){background:transparent;color:var(--muted);border-color:var(--border);}
+
+/* Journal */
+.j-entry{display:flex;gap:7px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.j-entry:last-of-type{border:none;}
+.j-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;font-family:var(--mono);}
+.jt-appel{background:#EFF6FF;color:#1d4ed8;}
+.jt-email{background:#F3E8FF;color:#7c3aed;}
+.jt-mission{background:#DCFCE7;color:#15803d;}
+.jt-note{background:#F1F5F9;color:#64748b;}
+.jt-relance{background:#FEE2E2;color:#b91c1c;}
+.j-date{font-size:10px;color:var(--muted);font-family:var(--mono);flex-shrink:0;}
+.j-txt{font-size:12px;flex:1;line-height:1.5;}
+.j-del{color:var(--muted);cursor:pointer;font-size:13px;}
+.j-del:hover{color:var(--red);}
+
+/* Habilitations */
+.hab-cat{margin-bottom:12px;}
+.hab-cat-t{font-size:10px;font-weight:700;color:var(--muted2);font-family:var(--mono);margin-bottom:6px;}
+.hab-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;border:1px solid var(--border);margin-bottom:4px;background:var(--bg);}
+.hab-row.has{border-color:#bbf7d0;background:#F0FDF4;}
+.hab-row.exp{border-color:#fca5a5;background:#FFF5F5;}
+.hab-chk{width:14px;height:14px;cursor:pointer;flex-shrink:0;}
+.hab-lbl{flex:1;font-size:11px;color:var(--text2);}
+.hab-date{font-size:10px;font-family:var(--mono);}
+.hab-date input{border:none;background:transparent;font-size:10px;font-family:var(--mono);color:var(--muted2);width:90px;}
+.hab-badge{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;font-family:var(--mono);}
+.hb-ok{background:#DCFCE7;color:#15803d;}
+.hb-exp{background:#FEE2E2;color:#dc2626;}
+.hb-soon{background:#FEF3C7;color:#92400e;}
+
+/* Trajet */
+.trajet-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;}
+.trajet-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.trajet-link{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.tl-car{background:#EFF6FF;color:#2563eb;}
+.tl-tc{background:#F0FDF4;color:#15803d;}
+.tl-cm{background:#ECFEFF;color:#0e7490;}
+.tl-vm{background:#FFF4EE;color:var(--accent);}
+
+/* Mission en cours */
+.mission-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:12px;}
+.mc-h{font-size:12px;font-weight:600;color:var(--muted);font-family:var(--mono);margin-bottom:8px;}
+.mc-client{font-size:17px;font-weight:600;color:var(--text);}
+.mc-dates{font-size:12px;color:var(--muted2);font-family:var(--mono);margin:4px 0;}
+.mc-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+
+/* SMS/Email viewer */
+.tpl-cats{display:flex;gap:6px;margin-bottom:10px;}
+.tpl-btns{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.tpl-btn{padding:4px 10px;font-size:10px;font-weight:500;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted2);background:transparent;font-family:var(--mono);}
+.tpl-btn.on{border-color:var(--accent);color:var(--accent);background:#FFF4EE;}
+.tpl-textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);resize:vertical;min-height:100px;line-height:1.7;}
+
+/* Modal */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:center;justify-content:center;padding:20px;}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--white);border-radius:var(--r-lg);padding:22px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+.modal-box h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mf{display:flex;flex-direction:column;gap:3px;}
+.mf.full{grid-column:1/-1;}
+.mf label{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.mf input,.mf select,.mf textarea{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--accent);outline:none;}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+
+/* RIGHT sidebar — vues */
+.side-right{width:200px;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.sr-section{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;padding:12px 14px 4px;}
+.sr-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;color:var(--muted2);font-size:12px;transition:all .12s;border-right:3px solid transparent;}
+.sr-item:hover{background:var(--bg);color:var(--text);}
+.sr-item.on{background:#FFF4EE;color:var(--accent);border-right-color:var(--accent);font-weight:500;}
+.sr-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* Score fiabilité */
+.score-stars{display:flex;gap:2px;}
+.star{font-size:14px;}
+.star.on{color:var(--amber);}
+.star.off{color:#E2E8F0;}
+
+/* Alerte docs */
+.doc-alert{background:#FEF3C7;border:1px solid #fcd34d;border-radius:6px;padding:8px 12px;font-size:11px;color:#92400e;margin-bottom:8px;}
+.doc-ok{background:#DCFCE7;border:1px solid #bbf7d0;border-radius:6px;padding:8px 12px;font-size:11px;color:#15803d;margin-bottom:8px;}
+
+/* Empty state fiche */
+.fiche-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted);font-family:var(--mono);font-size:12px;}
+.fiche-empty-icon{font-size:32px;opacity:.4;}
+
+/* Responsive */
+@media(max-width:768px){
+  .side-right{display:none;}
+  .side-left{width:240px;}
+  .fiche-tabs .fiche-tab{padding:8px 10px;font-size:10px;}
+}
+@media(max-width:480px){
+  .side-left{width:100%;position:absolute;z-index:50;border-right:none;bottom:0;top:0;}
+  .side-left.hide{display:none;}
+  .fiche{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Base Candidats</div>
+  <div class="tb-right">
+    <span id="tb-count" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+    <button class="btn btn-ghost btn-sm" onclick="exportCandidats()">Export</button>
+    <button class="btn btn-primary btn-sm" onclick="openModalCand()">+ Candidat</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT — Vivier -->
+  <div class="side-left" id="side-left">
+    <div class="sl-header">
+      <input class="sl-search" id="cand-search" type="text" placeholder="Nom, qualif, CP…" oninput="candRenderList()"/>
+      <div class="sl-filters">
+        <button class="sf on" data-f="" onclick="candSetFilter(this)">TOUS</button>
+        <button class="sf" data-f="dispo" onclick="candSetFilter(this)">DISPO</button>
+        <button class="sf" data-f="mission" onclick="candSetFilter(this)">MISSION</button>
+        <button class="sf" data-f="preavis" onclick="candSetFilter(this)">PRÉAVIS</button>
+        <button class="sf" data-f="indispo" onclick="candSetFilter(this)">INDISPO</button>
+      </div>
+    </div>
+    <div class="sl-pool">
+      <div class="pool-tab on" onclick="candSetPool('vivier',this)">VIVIER</div>
+      <div class="pool-tab" onclick="candSetPool('mission',this)">MISSION</div>
+      <div class="pool-tab" onclick="candSetPool('alerte',this)">ALERTES</div>
+    </div>
+    <div class="sl-count" id="cand-count"></div>
+    <div class="sl-list" id="cand-list"></div>
+  </div>
+
+  <!-- CENTER — Fiche -->
+  <div class="fiche" id="fiche-area">
+    <div id="fiche-hd" style="display:none">
+      <div class="fiche-hd">
+        <div>
+          <div class="fiche-hd-nom" id="fhd-nom">—</div>
+          <div class="fiche-hd-sub" id="fhd-sub">—</div>
+        </div>
+        <div class="fiche-hd-acts" id="fhd-acts"></div>
+      </div>
+      <div class="fiche-tabs" id="fiche-tabs"></div>
+    </div>
+    <div class="fiche-body" id="fiche-body">
+      <div class="fiche-empty">
+        <div class="fiche-empty-icon">👤</div>
+        <div>Sélectionner un candidat</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — Navigation modules -->
+  <div class="side-right">
+    <div class="sr-section">Vues</div>
+    <div class="sr-item on" onclick="candSetView('list')">
+      <div class="sr-dot" style="background:var(--accent)"></div>Vivier
+    </div>
+    <div class="sr-item" onclick="candSetView('sms')">
+      <div class="sr-dot" style="background:var(--blue)"></div>SMS
+    </div>
+    <div class="sr-item" onclick="candSetView('emails')">
+      <div class="sr-dot" style="background:var(--purple)"></div>Emails
+    </div>
+    <div class="sr-item" onclick="candSetView('marge')">
+      <div class="sr-dot" style="background:var(--green)"></div>Marge / Propale
+    </div>
+    <div class="sr-section">Outils</div>
+    <div class="sr-item" onclick="openModalCand()">
+      <div class="sr-dot" style="background:var(--muted)"></div>+ Candidat
+    </div>
+    <div class="sr-item" onclick="exportCandidats()">
+      <div class="sr-dot" style="background:var(--muted)"></div>Export XLS
+    </div>
+    <div class="sr-section">Accès</div>
+    <div class="sr-item" onclick="window.location='index.html'">
+      <div class="sr-dot" style="background:var(--muted)"></div>← Dashboard
+    </div>
+    <div class="sr-item" onclick="window.location='index.html#crm'">
+      <div class="sr-dot" style="background:var(--muted)"></div>CRM
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOUVEAU CANDIDAT -->
+<div class="modal-ov" id="modal-cand">
+  <div class="modal-box">
+    <h3 id="modal-cand-title">Nouveau candidat</h3>
+    <div class="modal-grid">
+      <div class="mf"><label>Nom *</label><input type="text" id="mc-nom"/></div>
+      <div class="mf"><label>Prénom *</label><input type="text" id="mc-prenom"/></div>
+      <div class="mf"><label>Qualification *</label>
+        <select id="mc-qualif">
+          <option value="">— Sélectionner —</option>
+          <optgroup label="SECOND OEUVRE">
+            <option>Plaquiste</option><option>Platrerie / Staff</option>
+            <option>Staffeur / Stuqueur</option><option>Peintre en batiment</option>
+            <option>Facadier</option><option>Carreleur</option>
+            <option>Menuisier Poseur</option><option>Serrurier / Metallier</option>
+            <option>Echafaudeur</option><option>Calorifugeur</option>
+          </optgroup>
+          <optgroup label="GROS OEUVRE">
+            <option>Macon</option><option>Coffreur-Bancheur</option>
+            <option>Ferrailleur</option><option>Charpentier Bois</option>
+            <option>Couvreur</option><option>Etancheur</option>
+          </optgroup>
+          <optgroup label="CVC / ELECTRICITE">
+            <option>Technicien CVC</option><option>Chauffagiste</option>
+            <option>Plombier Sanitaire</option><option>Electricien CFO</option>
+            <option>Electricien CFA</option>
+          </optgroup>
+          <optgroup label="ENGINS">
+            <option>Conducteur Engins (CACES R482)</option>
+            <option>Conducteur Nacelle (PEMP)</option><option>Cariste (CACES R489)</option>
+          </optgroup>
+          <optgroup label="ENCADREMENT">
+            <option>Chef de Chantier</option><option>Chef Equipe</option>
+            <option>Conducteur de Travaux</option>
+          </optgroup>
+        </select></div>
+      <div class="mf"><label>Niveau</label>
+        <select id="mc-niveau">
+          <option value="">—</option><option>N1</option><option>N2</option>
+          <option>N3</option><option>N4</option><option>ETAM</option><option>Cadre</option>
+        </select></div>
+      <div class="mf"><label>Téléphone</label><input type="tel" id="mc-tel"/></div>
+      <div class="mf"><label>Email</label><input type="email" id="mc-email"/></div>
+      <div class="mf"><label>CP</label><input type="text" id="mc-cp" maxlength="5" oninput="mcCPResolve()"/></div>
+      <div class="mf"><label>Ville</label><input type="text" id="mc-ville"/></div>
+      <div class="mf"><label>Taux brut (€/h)</label><input type="number" id="mc-taux" step="0.5"/></div>
+      <div class="mf"><label>Prétention (€/h)</label><input type="number" id="mc-pretention" step="0.5"/></div>
+      <div class="mf"><label>Disponibilité</label>
+        <select id="mc-dispo">
+          <option value="dispo">Disponible</option><option value="preavis">Préavis</option>
+          <option value="indispo">Indisponible</option><option value="mission">En mission</option>
+        </select></div>
+      <div class="mf"><label>Date dispo</label><input type="date" id="mc-dispo-date"/></div>
+      <div class="mf full"><label>Notes</label><textarea id="mc-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="closeModalCand()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCand()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+// DONNÉES GLOBALES
+// ═══════════════════════════════════════════════════════
+var DB = [];
+var AGENCE = {nom:'',adresse:'',tel:'',email:'',site:'',emetteur:'',fonction:"Responsable d'Agence",logo:''};
+var GRILLES = {};
+var currentId = null;
+var currentFicheTab = 'identite';
+var currentView = 'list';
+var candFilter = '';
+var candPool = 'vivier';
+var currentSMSCat = 'candidats';
+var currentSMSId = null;
+var currentEmailCat = 'candidats';
+var currentEmailId = null;
+var editingCandId = null;
+
+function loadData(){
+  try{ DB = JSON.parse(localStorage.getItem('cands_btp_v2')||'[]'); }catch(e){ DB=[]; }
+  try{ AGENCE = Object.assign({nom:'',tel:'',email:'',adresse:'',emetteur:'',fonction:"Responsable d'Agence",logo:''}, JSON.parse(localStorage.getItem('agence_btp')||'{}')); }catch(e){}
+  try{ GRILLES = JSON.parse(localStorage.getItem('grilles_btp')||'{}'); }catch(e){ GRILLES={}; }
+}
+function candSave(){
+  localStorage.setItem('cands_btp_v2', JSON.stringify(DB));
+}
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmt(d){ if(!d) return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function nrm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function daysLeft(d){ if(!d) return null; return Math.round((new Date(d)-new Date(today()))/86400000); }
+
+var DISPO_MAP = {
+  dispo:   {l:'DISPO',    cls:'db-dispo'},
+  mission: {l:'MISSION',  cls:'db-mission'},
+  preavis: {l:'PRÉAVIS',  cls:'db-preavis'},
+  indispo: {l:'INDISPO',  cls:'db-indispo'},
+  veille:  {l:'VEILLE',  cls:'db-veille'},
+};
+
+// CP → Ville IDF
+var CP_VILLES_IDF = {"75001":"Paris 1er","75002":"Paris 2e","75003":"Paris 3e","75004":"Paris 4e","75005":"Paris 5e","75006":"Paris 6e","75007":"Paris 7e","75008":"Paris 8e","75009":"Paris 9e","75010":"Paris 10e","75011":"Paris 11e","75012":"Paris 12e","75013":"Paris 13e","75014":"Paris 14e","75015":"Paris 15e","75016":"Paris 16e","75017":"Paris 17e","75018":"Paris 18e","75019":"Paris 19e","75020":"Paris 20e","92000":"Nanterre","92100":"Boulogne-Billancourt","92110":"Clichy","92120":"Montrouge","92130":"Issy-les-Moulineaux","92140":"Clamart","92150":"Suresnes","92160":"Antony","92170":"Vanves","92200":"Neuilly-sur-Seine","92210":"Saint-Cloud","92220":"Bagneux","92230":"Gennevilliers","92240":"Malakoff","92250":"La Garenne-Colombes","92260":"Fontenay-aux-Roses","92270":"Bois-Colombes","92290":"Châtenay-Malabry","92300":"Levallois-Perret","92310":"Sèvres","92320":"Châtillon","92330":"Sceaux","92340":"Bourg-la-Reine","92350":"Le Plessis-Robinson","92360":"Meudon","92370":"Chaville","92380":"Garches","92390":"Villeneuve-la-Garenne","92400":"Courbevoie","92410":"Ville-d'Avray","92420":"Vaucresson","92430":"Marnes-la-Coquette","92500":"Rueil-Malmaison","92600":"Asnières-sur-Seine","92700":"Colombes","92800":"Puteaux","93000":"Bobigny","93100":"Montreuil","93110":"Rosny-sous-Bois","93120":"La Courneuve","93130":"Noisy-le-Sec","93140":"Bondy","93150":"Le Blanc-Mesnil","93160":"Noisy-le-Grand","93170":"Bagnolet","93190":"Livry-Gargan","93200":"Saint-Denis","93210":"Saint-Denis","93220":"Gagny","93230":"Romainville","93240":"Stains","93250":"Villemomble","93260":"Les Lilas","93270":"Sevran","93300":"Aubervilliers","93310":"Le Pré-Saint-Gervais","93320":"Les Pavillons-sous-Bois","93330":"Neuilly-sur-Marne","93340":"Le Raincy","93350":"Le Bourget","93360":"Neuilly-Plaisance","93370":"Montfermeil","93380":"Pierrefitte-sur-Seine","93390":"Clichy-sous-Bois","93400":"Saint-Ouen","93410":"Vaujours","93420":"Villepinte","93430":"Villetaneuse","93440":"Dugny","93450":"Île-Saint-Denis","93460":"Gaulne","93470":"Coubron","93480":"Roissy-en-Brie","93490":"Roissy-en-France","93500":"Pantin","93600":"Aulnay-sous-Bois","93700":"Drancy","93800":"Épinay-sur-Seine","94000":"Créteil","94100":"Saint-Maur-des-Fossés","94110":"Arcueil","94120":"Fontenay-sous-Bois","94130":"Nogent-sur-Marne","94140":"Alfortville","94150":"Rungis","94160":"Saint-Mandé","94170":"Le Perreux-sur-Marne","94180":"Ivry-sur-Seine","94190":"Villeneuve-Saint-Georges","94200":"Ivry-sur-Seine","94210":"La Varenne-Saint-Hilaire","94220":"Charenton-le-Pont","94230":"Cachan","94240":"L'Haÿ-les-Roses","94250":"Gentilly","94260":"Fresnes","94270":"Le Kremlin-Bicêtre","94290":"Villeneuve-le-Roi","94300":"Vincennes","94310":"Orly","94320":"Thiais","94340":"Joinville-le-Pont","94350":"Villiers-sur-Marne","94360":"Bry-sur-Marne","94370":"Sucy-en-Brie","94380":"Bonneuil-sur-Marne","94390":"Ormesson-sur-Marne","94400":"Vitry-sur-Seine","94410":"Saint-Maurice","94420":"Le Plessis-Trévise","94430":"Chennevières-sur-Marne","94440":"Marolles-en-Brie","94450":"Limeil-Brévannes","94460":"Valenton","94470":"Boissy-Saint-Léger","94480":"Ablon-sur-Seine","94490":"Villecresnes","94500":"Champigny-sur-Marne","94510":"La Queue-en-Brie","94520":"Mandres-les-Roses","94550":"Chevilly-Larue","94600":"Choisy-le-Roi","94700":"Maisons-Alfort","94800":"Villejuif","95000":"Cergy","95100":"Argenteuil","95120":"Ermont","95130":"Le Chesnay","95140":"Garges-lès-Gonesse","95150":"Taverny","95160":"Montmorency","95170":"Deuil-la-Barre","95180":"Gonesse","95190":"Goussainville","95200":"Sarcelles","95210":"Saint-Gratien","95220":"Herblay","95230":"Soisy-sous-Montmorency","95240":"Cormeilles-en-Parisis","95250":"Beauchamp","95260":"Beaumont-sur-Oise","95270":"Luzarches","95290":"L'Isle-Adam","95300":"Pontoise","95310":"Saint-Ouen-l'Aumône","95320":"Saint-Leu-la-Forêt","95330":"Domont","95340":"Persan","95350":"Saint-Brice-sous-Forêt","95360":"Montmagny","95370":"Montmorency","95380":"Louvres","95390":"Saint-Prix","95400":"Villiers-le-Bel","95410":"Groslay","95420":"Magny-en-Vexin","95430":"Auvers-sur-Oise","95440":"Ecouen","95450":"Us","95460":"Ezanville","95470":"Fosses","95480":"Pierrelaye","95490":"Marly-la-Ville","95500":"Gonesse","95510":"Vémars","95520":"Osny","95530":"La Rochette","95540":"Méry-sur-Oise","95550":"Bessancourt","95560":"Baillet-en-France","95570":"Bouffémont","95580":"Andilly","95590":"Presles","95600":"Eaubonne","95610":"Eragny","95620":"Parmain","95630":"Piscop","95640":"Marines","95650":"Puiseux-Pontoise","95660":"Champagne-sur-Oise","95670":"Marly-la-Ville","95680":"Montlignon","95690":"Nesles-la-Vallée","95700":"Roissy-en-France","95710":"Bray-et-Lû","95720":"Senlisse","95730":"Menouville","95740":"Chars","95750":"Saint-Martin-du-Tertre","95760":"Valmondois","95770":"Bornel","95780":"La Roche-Guyon","95790":"Gadancourt"};
+
+function cpToVilleStr(cp){ return CP_VILLES_IDF[cp] || ''; }
+function mcCPResolve(){
+  var cp = (document.getElementById('mc-cp')||{value:''}).value;
+  var v = cpToVilleStr(cp);
+  if(v){ var el=document.getElementById('mc-ville'); if(el && !el.value) el.value=v; }
+}
+
+// ═══════════════════════════════════════════════════════
+// LISTE VIVIER
+// ═══════════════════════════════════════════════════════
+function candSetFilter(btn){
+  document.querySelectorAll('.sf').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  candFilter = btn.dataset.f || '';
+  candRenderList();
+}
+
+function candSetPool(pool, btn){
+  document.querySelectorAll('.pool-tab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  candPool = pool;
+  candRenderList();
+}
+
+function candRenderList(){
+  var q = ((document.getElementById('cand-search')||{}).value||'').trim().toLowerCase();
+  var pool = DB.filter(function(c){
+    // Pool filter
+    if(candPool==='vivier' && (c.dispo==='mission')) return false;
+    if(candPool==='mission' && c.dispo!=='mission') return false;
+    if(candPool==='alerte'){
+      var hasAlert = false;
+      if(c.mission && c.mission.vm_date){ var dl=daysLeft(c.mission.vm_date); if(dl!==null && dl<=30) hasAlert=true; }
+      if(!hasAlert) return false;
+    }
+    // Statut filter
+    if(candFilter && c.dispo!==candFilter) return false;
+    // Search
+    if(q){
+      var hay = [c.nom,c.prenom,c.qualif,c.niveau,c.cp,c.ville,c.tel].filter(Boolean).join(' ').toLowerCase();
+      return q.split(' ').filter(Boolean).every(function(w){ return hay.indexOf(w)>=0; });
+    }
+    return true;
+  });
+
+  pool.sort(function(a,b){
+    var order = {dispo:0,preavis:1,mission:2,indispo:3,veille:4};
+    return (order[a.dispo]||9) - (order[b.dispo]||9) || (a.nom||'').localeCompare(b.nom||'');
+  });
+
+  var cnt = document.getElementById('cand-count');
+  if(cnt) cnt.textContent = pool.length+' / '+DB.length+' candidats';
+  var tbCnt = document.getElementById('tb-count');
+  if(tbCnt) tbCnt.textContent = DB.length+' candidats';
+
+  var list = document.getElementById('cand-list');
+  if(!list) return;
+  if(!pool.length){
+    list.innerHTML = '<div class="sl-empty">Aucun candidat correspondant</div>';
+    return;
+  }
+
+  list.innerHTML = pool.map(function(c){
+    var d = DISPO_MAP[c.dispo]||DISPO_MAP.indispo;
+    var sub = [c.qualif, c.niveau, (c.cp||'')+(c.ville?' — '+c.ville:'')].filter(Boolean).join(' · ');
+    return '<div class="cand-row'+(currentId===c.id?' sel':'')+'" data-id="'+c.id+'" onclick="candOpenFiche(this.dataset.id)">'
+      + '<div class="cr-nom">'+esc((c.nom||'')+(c.prenom?' '+c.prenom:''))+'</div>'
+      + (sub?'<div class="cr-sub">'+esc(sub)+'</div>':'')
+      + '<div class="cr-badges"><span class="db '+d.cls+'">'+d.l+'</span>'
+      + (c.taux?'<span class="db" style="background:#F1F5F9;color:var(--muted2)">'+c.taux+'€</span>':'')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// FICHE CANDIDAT
+// ═══════════════════════════════════════════════════════
+var TABS = [
+  {id:'identite',  l:'Identité'},
+  {id:'checklist', l:'Checklist docs'},
+  {id:'competences',l:'Compétences'},
+  {id:'habilitations',l:'Habilitations'},
+  {id:'journal',   l:'Journal'},
+  {id:'mission',   l:'Mission'},
+  {id:'historique',l:'Historique'},
+  {id:'trajet',    l:'Trajet'},
+];
+
+function candOpenFiche(id){
+  currentId = id;
+  currentFicheTab = 'identite';
+  candRenderList();
+  renderFicheHeader(id);
+  renderFicheTab(id, 'identite');
+  document.getElementById('fiche-hd').style.display='block';
+}
+
+function renderFicheHeader(id){
+  var c = DB.find(function(x){ return x.id===id; }); if(!c) return;
+  var d = DISPO_MAP[c.dispo]||DISPO_MAP.indispo;
+  document.getElementById('fhd-nom').textContent = (c.prenom||'')+' '+(c.nom||'');
+  document.getElementById('fhd-sub').textContent = [(c.qualif||''),(c.niveau||''),(c.taux?c.taux+'€/h':'')].filter(Boolean).join(' · ');
+  document.getElementById('fhd-acts').innerHTML =
+    '<button class="btn btn-ghost btn-sm" onclick="openModalCand(\''+id+'\')">✏ Modifier</button>'
+    +'<button class="btn btn-primary btn-sm" onclick="genCVPDF(\''+id+'\')">PDF CV</button>'
+    +'<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCand(\''+id+'\')">Suppr.</button>';
+
+  var tabs = TABS.map(function(t){
+    return '<div class="fiche-tab'+(currentFicheTab===t.id?' on':'')+'" onclick="switchTab(\''+t.id+'\')">'+t.l+'</div>';
+  }).join('');
+  document.getElementById('fiche-tabs').innerHTML = tabs;
+}
+
+function switchTab(tab){
+  currentFicheTab = tab;
+  var tabs = TABS.map(function(t){
+    return '<div class="fiche-tab'+(currentFicheTab===t.id?' on':'')+'" onclick="switchTab(\''+t.id+'\')">'+t.l+'</div>';
+  }).join('');
+  document.getElementById('fiche-tabs').innerHTML = tabs;
+  renderFicheTab(currentId, tab);
+}
+
+function renderFicheTab(id, tab){
+  var c = DB.find(function(x){ return x.id===id; });
+  var body = document.getElementById('fiche-body');
+  if(!c || !body){ body.innerHTML='<div class="fiche-empty"><div class="fiche-empty-icon">⚠️</div><div>Candidat introuvable</div></div>'; return; }
+
+  var html = '';
+  if(tab==='identite')    html = renderTabIdentite(c);
+  else if(tab==='checklist')  html = renderTabChecklist(c);
+  else if(tab==='competences') html = renderTabCompetences(c);
+  else if(tab==='habilitations') html = renderTabHabilitations(c);
+  else if(tab==='journal')    html = renderTabJournal(c);
+  else if(tab==='mission')    html = renderTabMission(c);
+  else if(tab==='historique') html = renderTabHistorique(c);
+  else if(tab==='trajet')     html = renderTabTrajet(c);
+  body.innerHTML = html;
+}
+
+// ── TAB IDENTITÉ ─────────────────────────────────────────────────────────────
+function renderTabIdentite(c){
+  var d = DISPO_MAP[c.dispo]||DISPO_MAP.indispo;
+  var dispoBtns = Object.keys(DISPO_MAP).map(function(k){
+    var dm = DISPO_MAP[k];
+    var on = c.dispo===k ? 'on-'+k : '';
+    return '<button class="dispo-btn '+on+'" data-d="'+k+'" onclick="setDispo(\''+c.id+'\',this.dataset.d)">'+dm.l+'</button>';
+  }).join('');
+
+  return '<div class="dispo-btns">'+dispoBtns+'</div>'
+    + '<div class="f-section">'
+    + '<div class="f-section-t">Identification</div>'
+    + '<div class="f-grid">'
+    + fi('Qualification', 'f-qualif-'+c.id, c.qualif||'', 'text', 'identite','qualif', c.id)
+    + fi('Niveau', 'f-niveau-'+c.id, c.niveau||'', 'select-niveau', 'identite','niveau', c.id)
+    + fi('Taux brut €/h', 'f-taux-'+c.id, c.taux||'', 'number', 'identite','taux', c.id)
+    + fi('Prétention €/h', 'f-pret-'+c.id, c.pretention||'', 'number', 'identite','pretention', c.id)
+    + fi('Téléphone', 'f-tel-'+c.id, c.tel||'', 'tel', 'identite','tel', c.id)
+    + fi('Email', 'f-email-'+c.id, c.email||'', 'email', 'identite','email', c.id)
+    + fi('CP', 'f-cp-'+c.id, c.cp||'', 'text', 'identite','cp', c.id)
+    + fi('Ville', 'f-ville-'+c.id, c.ville||'', 'text', 'identite','ville', c.id)
+    + fi('Permis / Mobilité', 'f-permis-'+c.id, c.permis||'', 'text', 'identite','permis', c.id)
+    + fi('Véhicule', 'f-vehicule-'+c.id, c.vehicule||'', 'text', 'identite','vehicule', c.id)
+    + fi('Expérience (années)', 'f-exp-'+c.id, c.exp_annees||'', 'number', 'identite','exp_annees', c.id)
+    + fi('Langues', 'f-langues-'+c.id, c.langues||'', 'text', 'identite','langues', c.id)
+    + '<div class="f-field full">'+fl('Date de dispo')+'<input type="date" class="f-inp" value="'+(c.dispo_date||'')+'" onchange="saveField(\''+c.id+'\',\'dispo_date\',this.value)"/></div>'
+    + '<div class="f-field full">'+fl('Notes')+'<textarea class="f-inp" onblur="saveField(\''+c.id+'\',\'notes\',this.value)">'+esc(c.notes||'')+'</textarea></div>'
+    + '</div></div>'
+    + '<div class="f-section"><div class="f-section-t">Score fiabilité</div>'
+    + renderScore(c)
+    + '</div>';
+}
+
+function fl(label){ return '<label class="f-label">'+label+'</label>'; }
+function fi(label, id, val, type, tab, field, cid){
+  var inp = '';
+  if(type==='select-niveau'){
+    inp = '<select class="f-inp" id="'+id+'" onchange="saveField(\''+cid+'\',\''+field+'\',this.value)">'
+      + ['','N1','N2','N3','N4','ETAM','Cadre'].map(function(v){ return '<option'+(val===v?' selected':'')+'>'+v+'</option>'; }).join('')
+      + '</select>';
+  } else {
+    inp = '<input type="'+type+'" class="f-inp" id="'+id+'" value="'+esc(val)+'" onblur="saveField(\''+cid+'\',\''+field+'\',this.value)"/>';
+  }
+  return '<div class="f-field">'+fl(label)+inp+'</div>';
+}
+
+function renderScore(c){
+  var score = calcScore(c);
+  var stars = [1,2,3,4,5].map(function(i){
+    return '<span class="star '+(i<=score?'on':'off')+'">★</span>';
+  }).join('');
+  return '<div class="score-stars">'+stars+'</div>'
+    + '<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:4px">'
+    + 'Basé sur '+((c.historique||[]).length)+' missions réalisées'
+    + '</div>';
+}
+
+function calcScore(c){
+  var hist = c.historique||[];
+  if(!hist.length) return 0;
+  var score = 3;
+  hist.forEach(function(m){
+    if(m.abandon) score--;
+    if(m.note_client && m.note_client>=4) score++;
+    if(m.note_client && m.note_client<=2) score--;
+  });
+  return Math.min(5, Math.max(1, Math.round(score)));
+}
+
+// ── TAB CHECKLIST ─────────────────────────────────────────────────────────────
+function renderTabChecklist(c){
+  var chk = c.checks||{};
+  var DOCS = [
+    {id:'cni',     l:"Pièce d'identité",         obligatoire:true},
+    {id:'cv',      l:"CV",                        obligatoire:true},
+    {id:'carte_pro',l:"Carte Pro BTP",            obligatoire:true},
+    {id:'carte_vitale',l:"Carte Vitale",          obligatoire:true},
+    {id:'rib',     l:"RIB",                       obligatoire:true},
+    {id:'urssaf',  l:"Attestation URSSAF",        obligatoire:false},
+    {id:'justif_domicile',l:"Justificatif domicile (< 3 mois)", obligatoire:false},
+    {id:'vm',      l:"Visite médicale (< 2 ans)", obligatoire:true},
+    {id:'permis',  l:"Permis de conduire",        obligatoire:false},
+    {id:'titre_sejour',l:"Titre de séjour",       obligatoire:false},
+  ];
+
+  var manquants = DOCS.filter(function(d){ return d.obligatoire && !chk[d.id]; });
+  var alerteHtml = manquants.length
+    ? '<div class="doc-alert">⚠ '+manquants.length+' document(s) obligatoire(s) manquant(s) : '+manquants.map(function(d){ return d.l; }).join(', ')+'</div>'
+    : '<div class="doc-ok">✓ Dossier complet</div>';
+
+  var rows = DOCS.map(function(d){
+    var checked = !!chk[d.id];
+    return '<div class="hab-row'+(checked?' has':'')+'"><input type="checkbox" class="hab-chk" '+(checked?'checked':'')+' data-cid="'+c.id+'" data-doc="'+d.id+'" onchange="toggleDoc(this)"/>'
+      + '<span class="hab-lbl">'+(d.obligatoire?'<strong>':'')+''+d.l+(d.obligatoire?'</strong>':'')+' '+(d.obligatoire?'<span style="color:var(--red);font-size:9px">*</span>':'')+'</span>'
+      + (checked?'<span class="hab-badge hb-ok">OK</span>':'<span class="hab-badge hb-exp">MANQUANT</span>')
+      + '</div>';
+  }).join('');
+
+  return alerteHtml
+    + '<div class="f-section"><div class="f-section-t">Documents</div>'+rows+'</div>'
+    + '<div class="f-section"><div class="f-section-t">Visite médicale</div>'
+    + '<div class="f-grid">'
+    + '<div class="f-field">'+fl('Date VM')+'<input type="date" class="f-inp" value="'+(c.vm_date||'')+'" onchange="saveField(\''+c.id+'\',\'vm_date\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Aptitude')+'<select class="f-inp" onchange="saveField(\''+c.id+'\',\'vm_aptitude\',this.value)">'
+    + ['Apte','Apte avec restrictions','Inapte temporaire','Inapte définitif'].map(function(v){ return '<option'+(c.vm_aptitude===v?' selected':'')+'>'+v+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="f-field full">'+fl('Restrictions')+'<input type="text" class="f-inp" value="'+esc(c.vm_restrictions||'')+'" onblur="saveField(\''+c.id+'\',\'vm_restrictions\',this.value)"/></div>'
+    + '</div></div>';
+}
+
+function toggleDoc(el){
+  var cid = el.dataset.cid; var doc = el.dataset.doc;
+  var c = DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!c.checks) c.checks={};
+  c.checks[doc] = el.checked;
+  candSave(); renderFicheTab(cid,'checklist');
+}
+
+// ── TAB COMPÉTENCES ───────────────────────────────────────────────────────────
+function renderTabCompetences(c){
+  var comp = c.competences||{};
+  var COMPS = [
+    {cat:'Second œuvre',items:['Plaquisterie / Cloisons','Plâtrerie traditionnelle','Staff / Stuc','Peinture bâtiment','Ravalement / Façade','Carrelage / Faïence','Sol souple / Parquet','Menuiserie intérieure','Menuiserie extérieure','Étanchéité / Couverture']},
+    {cat:'Gros œuvre',items:['Maçonnerie traditionnelle','Béton armé / Coffrage','Ferraillage','Charpente bois','Charpente métallique','Démolition']},
+    {cat:'CVC / Plomberie',items:['Plomberie sanitaire','Chauffage','Climatisation / CVC','VMC','Froid commercial']},
+    {cat:'Électricité',items:['CFO (courants forts)','CFA (courants faibles)','Tableau électrique','Éclairage']},
+  ];
+  var NIVEAUX = ['','Notions','Pratique','Maîtrise','Expert'];
+
+  return COMPS.map(function(cat){
+    return '<div class="f-section"><div class="f-section-t">'+cat.cat+'</div>'
+      + cat.items.map(function(item){
+          var key = item.toLowerCase().replace(/[^a-z0-9]/g,'_');
+          var val = comp[key]||'';
+          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">'
+            + '<span style="flex:1;font-size:12px">'+item+'</span>'
+            + '<select style="border:1px solid var(--border);border-radius:4px;font-size:11px;padding:3px 6px;background:var(--bg);" onchange="saveCompetence(\''+c.id+'\',\''+key+'\',this.value)">'
+            + NIVEAUX.map(function(n){ return '<option'+(val===n?' selected':'')+'>'+n+'</option>'; }).join('')
+            + '</select>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }).join('')
+  + '<div class="f-section"><div class="f-section-t">Outillage personnel</div>'
+  + '<textarea class="f-inp" onblur="saveField(\''+c.id+'\',\'outillage_perso\',this.value)">'+esc(c.outillage_perso||'')+'</textarea></div>';
+}
+
+function saveCompetence(cid, key, val){
+  var c = DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!c.competences) c.competences={};
+  c.competences[key] = val;
+  candSave();
+}
+
+// ── TAB HABILITATIONS ─────────────────────────────────────────────────────────
+function renderTabHabilitations(c){
+  var chk = c.checks||{};
+  var dates = c.hab_dates||{};
+  var HABS = [
+    {cat:'CACES',items:[
+      {id:'caces_r482_a',l:'CACES R482 cat. A (mini-engins)'},
+      {id:'caces_r482_b1',l:'CACES R482 cat. B1 (pelles)'},
+      {id:'caces_r482_c1',l:'CACES R482 cat. C1 (chargeuses)'},
+      {id:'caces_r482_f',l:'CACES R482 cat. F (dumpers)'},
+      {id:'caces_r489',l:'CACES R489 (chariots élévateurs)'},
+      {id:'caces_r490',l:'CACES R490 (nacelles PEMP)'},
+      {id:'caces_r487',l:'CACES R487 (grues à tour)'},
+    ]},
+    {cat:'Habilitations électriques',items:[
+      {id:'elec_b0',l:'B0 — Non électricien'},
+      {id:'elec_h0',l:'H0 — Haute tension non électricien'},
+      {id:'elec_br',l:'BR — Chargé d\'intervention'},
+      {id:'elec_bc',l:'BC — Chargé de consignation'},
+      {id:'elec_b1',l:'B1 — Exécutant BT'},
+      {id:'elec_b2',l:'B2 — Chargé de travaux BT'},
+    ]},
+    {cat:'Risques particuliers',items:[
+      {id:'aipr',l:'AIPR (Autorisation Intervention Proximité Réseaux)'},
+      {id:'amiante_ss4',l:'Formation amiante sous-section 4'},
+      {id:'plomb',l:'Formation plomb'},
+      {id:'espace_confine',l:'Espace confiné'},
+      {id:'harnais',l:'Travail en hauteur / Port du harnais'},
+    ]},
+    {cat:'Sécurité',items:[
+      {id:'sst',l:'SST (Sauveteur Secouriste du Travail)'},
+      {id:'prap',l:'PRAP BTP'},
+    ]},
+  ];
+
+  return HABS.map(function(cat){
+    return '<div class="hab-cat"><div class="hab-cat-t">'+cat.cat+'</div>'
+      + cat.items.map(function(h){
+          var hasIt = !!chk['hab_'+h.id];
+          var expDate = dates[h.id]||'';
+          var dl = expDate ? daysLeft(expDate) : null;
+          var statCls = !hasIt ? '' : dl===null ? 'has' : dl<0 ? 'exp' : dl<=30 ? 'has' : 'has';
+          var badge = !hasIt ? '' : dl===null ? '<span class="hab-badge hb-ok">OK</span>'
+            : dl<0 ? '<span class="hab-badge hb-exp">EXPIRÉ</span>'
+            : dl<=30 ? '<span class="hab-badge hb-soon">J-'+dl+'</span>'
+            : '<span class="hab-badge hb-ok">OK</span>';
+          return '<div class="hab-row '+statCls+'">'
+            + '<input type="checkbox" class="hab-chk" '+(hasIt?'checked':'')+' data-cid="'+c.id+'" data-hid="'+h.id+'" onchange="toggleHab(this)"/>'
+            + '<span class="hab-lbl">'+h.l+'</span>'
+            + (hasIt?'<div class="hab-date"><input type="date" value="'+expDate+'" title="Date expiration" onchange="saveHabDate(\''+c.id+'\',\''+h.id+'\',this.value)"/></div>':'')
+            + badge
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }).join('');
+}
+
+function toggleHab(el){
+  var cid=el.dataset.cid; var hid=el.dataset.hid;
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!c.checks) c.checks={};
+  c.checks['hab_'+hid] = el.checked;
+  candSave(); renderFicheTab(cid,'habilitations');
+}
+
+function saveHabDate(cid,hid,val){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!c.hab_dates) c.hab_dates={};
+  c.hab_dates[hid]=val; candSave();
+}
+
+// ── TAB JOURNAL ───────────────────────────────────────────────────────────────
+function renderTabJournal(c){
+  var jArr = (c.journal||[]).slice().reverse();
+  var JTYPES = {appel:'APPEL',email:'EMAIL',mission:'MISSION',note:'NOTE',relance:'RELANCE'};
+
+  var entries = jArr.map(function(e,i){
+    var ri = (c.journal.length-1)-i;
+    var tc = 'jt-'+(e.type||'note');
+    return '<div class="j-entry">'
+      + '<span class="j-tag '+tc+'">'+(JTYPES[e.type]||e.type||'NOTE')+'</span>'
+      + '<span class="j-date">'+fmt(e.date)+'</span>'
+      + '<span class="j-txt">'+esc(e.texte||'')+'</span>'
+      + '<span class="j-del" data-cid="'+c.id+'" data-idx="'+ri+'" onclick="delJournalEntry(this.dataset.cid,parseInt(this.dataset.idx))">×</span>'
+      + '</div>';
+  }).join('') || '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucune entrée</div>';
+
+  return '<div class="f-section"><div class="f-section-t">Ajouter une action</div>'
+    + '<div style="display:grid;grid-template-columns:100px 130px 1fr auto;gap:8px;align-items:end;">'
+    + '<div class="f-field">'+fl('Type')+'<select class="f-inp" id="jt-'+c.id+'">'
+    + Object.keys(JTYPES).map(function(k){ return '<option value="'+k+'">'+JTYPES[k]+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="f-field">'+fl('Date')+'<input type="date" class="f-inp" id="jd-'+c.id+'" value="'+today()+'"/></div>'
+    + '<div class="f-field">'+fl('Détail')+'<input type="text" class="f-inp" id="jx-'+c.id+'" placeholder="ex: Appel — dispo confirmée"/></div>'
+    + '<div><button class="btn btn-primary btn-sm" style="margin-top:16px" data-cid="'+c.id+'" onclick="addJournalEntry(this.dataset.cid)">+ LOG</button></div>'
+    + '</div></div>'
+    + '<div class="f-section"><div class="f-section-t">Historique ('+( c.journal||[]).length+')</div>'+entries+'</div>';
+}
+
+function addJournalEntry(cid){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  var t=document.getElementById('jt-'+cid);
+  var d=document.getElementById('jd-'+cid);
+  var x=document.getElementById('jx-'+cid);
+  if(!x||!x.value.trim()) return;
+  if(!c.journal) c.journal=[];
+  c.journal.push({type:(t?t.value:'note'),date:(d?d.value:today()),texte:x.value.trim()});
+  x.value=''; candSave(); renderFicheTab(cid,'journal');
+}
+
+function delJournalEntry(cid,idx){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  c.journal.splice(idx,1); candSave(); renderFicheTab(cid,'journal');
+}
+
+// ── TAB MISSION ───────────────────────────────────────────────────────────────
+function renderTabMission(c){
+  var m = c.mission||{};
+  var crmDB2 = [];
+  try{ crmDB2=JSON.parse(localStorage.getItem('crm_btp_db')||'[]'); }catch(e){}
+  var clientOpts = crmDB2.map(function(p){ return '<option value="'+esc(p.nom)+'"'+(m.client===p.nom?' selected':'')+'>'+esc(p.nom)+'</option>'; }).join('');
+
+  var html = '<div class="mission-card">'
+    + '<div class="mc-h">MISSION EN COURS</div>'
+    + '<div class="f-grid">'
+    + '<div class="f-field full">'+fl('Client')+'<input type="text" list="clist-'+c.id+'" class="f-inp" value="'+esc(m.client||'')+'" onblur="saveMission(\''+c.id+'\',\'client\',this.value)"/>'
+    + '<datalist id="clist-'+c.id+'">'+clientOpts+'</datalist></div>'
+    + '<div class="f-field">'+fl('Contact chantier')+'<input type="text" class="f-inp" value="'+esc(m.contact||'')+'" onblur="saveMission(\''+c.id+'\',\'contact\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Tél contact')+'<input type="tel" class="f-inp" value="'+esc(m.contact_tel||'')+'" onblur="saveMission(\''+c.id+'\',\'contact_tel\',this.value)"/></div>'
+    + '<div class="f-field full">'+fl('Adresse chantier')+'<input type="text" class="f-inp" value="'+esc(m.adresse||'')+'" onblur="saveMission(\''+c.id+'\',\'adresse\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Date début')+'<input type="date" class="f-inp" value="'+(m.date_debut||'')+'" onchange="saveMission(\''+c.id+'\',\'date_debut\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Date fin prévue')+'<input type="date" class="f-inp" value="'+(m.date_fin||'')+'" onchange="saveMission(\''+c.id+'\',\'date_fin\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Horaires')+'<input type="text" class="f-inp" value="'+esc(m.horaires||'')+'" onblur="saveMission(\''+c.id+'\',\'horaires\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Taux client €/h')+'<input type="number" class="f-inp" step="0.5" value="'+(m.tc||'')+'" onblur="saveMission(\''+c.id+'\',\'tc\',this.value)"/></div>'
+    + '<div class="f-field">'+fl('Motif de recours')+'<select class="f-inp" onchange="saveMission(\''+c.id+'\',\'motif\',this.value)">'
+    + ['Accroissement temporaire','Remplacement','Saisonnier','Commande exceptionnelle'].map(function(v){
+        return '<option'+(m.motif===v?' selected':'')+'>'+v+'</option>';
+      }).join('')
+    + '</select></div>'
+    + '<div class="f-field">'+fl('Confirmation présence')+'<select class="f-inp" onchange="saveMission(\''+c.id+'\',\'presence\',this.value)">'
+    + ['Non renseigné','Confirmé','Absent','Retard'].map(function(v){
+        return '<option'+(m.presence===v?' selected':'')+'>'+v+'</option>';
+      }).join('')
+    + '</select></div>'
+    + '</div>'
+    + '<div class="mc-acts">'
+    + '<button class="btn btn-ghost btn-sm" onclick="cloturerMission(\''+c.id+'\')">Clôturer mission</button>'
+    + '</div>'
+    + '</div>';
+
+  return html;
+}
+
+function saveMission(cid, field, val){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!c.mission) c.mission={};
+  c.mission[field]=val; candSave();
+  // Sync dispo si date début = aujourd'hui
+  if(field==='date_debut' && val===today()) { c.dispo='mission'; candSave(); candRenderList(); }
+}
+
+function cloturerMission(cid){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  if(!confirm('Clôturer la mission et repasser le candidat en disponible ?')) return;
+  if(!c.historique) c.historique=[];
+  if(c.mission && c.mission.client){
+    c.historique.push({
+      client:c.mission.client, adresse:c.mission.adresse,
+      date_debut:c.mission.date_debut, date_fin:c.mission.date_fin||today(),
+      tc:c.mission.tc, motif:c.mission.motif,
+      archivedAt:today()
+    });
+  }
+  c.mission={}; c.dispo='dispo'; candSave();
+  candRenderList(); renderFicheTab(cid,'mission');
+}
+
+// ── TAB HISTORIQUE ────────────────────────────────────────────────────────────
+function renderTabHistorique(c){
+  var hist = (c.historique||[]).slice().reverse();
+  if(!hist.length) return '<div style="padding:20px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px">Aucune mission archivée</div>';
+
+  var tc_moy = 0; var ca_total = 0;
+  hist.forEach(function(m){
+    if(m.tc) tc_moy += parseFloat(m.tc)||0;
+    if(m.tc && m.date_debut && m.date_fin){
+      var days = Math.round((new Date(m.date_fin)-new Date(m.date_debut))/86400000);
+      ca_total += (parseFloat(m.tc)||0) * 7 * days / 5;
+    }
+  });
+  if(hist.length) tc_moy = Math.round(tc_moy/hist.length*10)/10;
+
+  return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">'
+    + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+hist.length+'</div><div style="font-size:10px;color:var(--muted)">Missions réalisées</div></div>'
+    + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+tc_moy+'€</div><div style="font-size:10px;color:var(--muted)">TXH moyen</div></div>'
+    + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+(ca_total>1000?Math.round(ca_total/100)/10+'k':'~'+Math.round(ca_total))+'€</div><div style="font-size:10px;color:var(--muted)">CA estimé total</div></div>'
+    + '</div>'
+    + hist.map(function(m){
+        return '<div style="border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;">'
+          + '<div style="font-size:13px;font-weight:600;">'+esc(m.client||'—')+'</div>'
+          + '<div style="font-size:10px;color:var(--muted);font-family:var(--mono);">'+fmt(m.date_debut)+' → '+fmt(m.date_fin||m.archivedAt)
+          + (m.tc?' · '+m.tc+'€/h':'')+'</div>'
+          + (m.motif?'<div style="font-size:10px;color:var(--muted2);margin-top:4px">'+esc(m.motif)+'</div>':'')
+          + '</div>';
+      }).join('');
+}
+
+// ── TAB TRAJET ────────────────────────────────────────────────────────────────
+function renderTabTrajet(c){
+  var adresseCand = [(c.cp||''),(c.ville||'')].filter(Boolean).join(' ');
+  return '<div class="trajet-box">'
+    + '<div class="f-grid">'
+    + '<div class="f-field">'+fl('Origine')+'<input type="text" class="f-inp" id="tr-ori-'+c.id+'" value="'+esc(adresseCand)+'" placeholder="CP ou adresse"/></div>'
+    + '<div class="f-field">'+fl('Destination (chantier)')+'<input type="text" class="f-inp" id="tr-dest-'+c.id+'" placeholder="CP ou adresse chantier" oninput="calcTrajet(\''+c.id+'\')"/></div>'
+    + '</div>'
+    + '<div id="tr-result-'+c.id+'" style="margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--muted)">Saisir une adresse de destination</div>'
+    + '</div>';
+}
+
+function calcTrajet(cid){
+  var ori = (document.getElementById('tr-ori-'+cid)||{value:''}).value.trim();
+  var dest = (document.getElementById('tr-dest-'+cid)||{value:''}).value.trim();
+  var res = document.getElementById('tr-result-'+cid);
+  if(!dest||!res) return;
+  // Calcul via haversine + CP_VILLES_IDF
+  var km = estimerDistKm(ori, dest);
+  if(km === null){ res.innerHTML = '<span style="color:var(--muted)">CP non reconnu — Distance non calculée</span>'; return; }
+  
+  // Zone ITR
+  var ZONES = [[5,2.20,'Z1 ≤5km'],[10,4.50,'Z2 5→10km'],[20,6.80,'Z3 10→20km'],
+    [30,9.15,'Z4 20→30km'],[40,11.50,'Z5 30→40km'],[50,13.85,'Z6 40→50km'],[999,16.20,'Z7 >50km']];
+  var zone = ZONES[ZONES.length-1];
+  for(var i=0;i<ZONES.length;i++){ if(km<=ZONES[i][0]){ zone=ZONES[i]; break; } }
+
+  var lienVoiture = 'https://www.google.com/maps/dir/'+encodeURIComponent(ori)+'/'+encodeURIComponent(dest);
+  var lienTC = 'https://www.google.com/maps/dir/'+encodeURIComponent(ori)+'/'+encodeURIComponent(dest)+'/@,13z/data=!4m2!4m1!3e3';
+
+  res.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">'
+    + '<div style="background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:18px;font-weight:600;">'+Math.round(km)+' km</div><div style="font-size:9px;color:var(--muted)">Distance estimée</div></div>'
+    + '<div style="background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:16px;font-weight:600;color:var(--accent)">'+zone[2]+'</div><div style="font-size:9px;color:var(--muted)">Zone ITR</div></div>'
+    + '<div style="background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:18px;font-weight:600;">'+zone[1].toFixed(2)+'€</div><div style="font-size:9px;color:var(--muted)">ITR / jour</div></div>'
+    + '</div>'
+    + '<div class="trajet-links">'
+    + '<a href="'+lienVoiture+'" target="_blank" class="trajet-link tl-car">🚗 Google Maps voiture</a>'
+    + '<a href="'+lienTC+'" target="_blank" class="trajet-link tl-tc">🚌 TC Google Maps</a>'
+    + '<a href="https://citymapper.com/directions?startcoord=&endcoord=&lang=fr" target="_blank" class="trajet-link tl-cm">📱 Citymapper</a>'
+    + '</div>';
+}
+
+function estimerDistKm(ori, dest){
+  var cpOri = ori.match(/\b(\d{5})\b/); if(!cpOri) return null;
+  var cpDest = dest.match(/\b(\d{5})\b/); if(!cpDest) return null;
+  var coordsIDF = {
+    '75':{'lat':48.8566,'lng':2.3522},'92':{'lat':48.8240,'lng':2.2363},
+    '93':{'lat':48.9340,'lng':2.4692},'94':{'lat':48.7907,'lng':2.4608},
+    '91':{'lat':48.6307,'lng':2.4339},'78':{'lat':48.8014,'lng':1.9875},
+    '77':{'lat':48.7302,'lng':2.8652},'95':{'lat':49.0343,'lng':2.0834},
+  };
+  var p1 = coordsIDF[cpOri[1].slice(0,2)];
+  var p2 = coordsIDF[cpDest[1].slice(0,2)];
+  if(!p1||!p2) return null;
+  var R=6371, dLat=(p2.lat-p1.lat)*Math.PI/180, dLng=(p2.lng-p1.lng)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(p1.lat*Math.PI/180)*Math.cos(p2.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ═══════════════════════════════════════════════════════
+// CRUD CANDIDATS
+// ═══════════════════════════════════════════════════════
+function saveField(cid, field, val){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  c[field]=val; candSave();
+}
+
+function setDispo(cid, d){
+  var c=DB.find(function(x){ return x.id===cid; }); if(!c) return;
+  c.dispo=d; candSave(); candRenderList(); renderFicheTab(cid,'identite');
+}
+
+function openModalCand(id){
+  editingCandId = id||null;
+  var mo=document.getElementById('modal-cand');
+  document.getElementById('modal-cand-title').textContent = id?'Modifier le candidat':'Nouveau candidat';
+  var c = id?DB.find(function(x){ return x.id===id; }):null;
+  var fmap={'mc-nom':'nom','mc-prenom':'prenom','mc-tel':'tel','mc-email':'email',
+    'mc-cp':'cp','mc-ville':'ville','mc-notes':'notes','mc-qualif':'qualif',
+    'mc-niveau':'niveau','mc-dispo':'dispo','mc-dispo-date':'dispo_date'};
+  Object.keys(fmap).forEach(function(fid){
+    var el=document.getElementById(fid); if(!el) return;
+    el.value=c?(c[fmap[fid]]||''):'';
+  });
+  var t=document.getElementById('mc-taux'); if(t) t.value=c&&c.taux?c.taux:'';
+  var p=document.getElementById('mc-pretention'); if(p) p.value=c&&c.pretention?c.pretention:'';
+  mo.classList.add('open');
+}
+
+function closeModalCand(){
+  document.getElementById('modal-cand').classList.remove('open');
+}
+
+function saveCand(){
+  var nom=(document.getElementById('mc-nom')||{value:''}).value.trim();
+  var prenom=(document.getElementById('mc-prenom')||{value:''}).value.trim();
+  if(!nom||!prenom){ alert('Nom et prénom obligatoires'); return; }
+  var g=function(id){ return (document.getElementById(id)||{value:''}).value; };
+  var cp=g('mc-cp');
+  var ville=g('mc-ville')||(cp?cpToVilleStr(cp):'');
+  if(editingCandId){
+    var c=DB.find(function(x){ return x.id===editingCandId; }); if(!c) return;
+    c.nom=nom;c.prenom=prenom;c.qualif=g('mc-qualif');c.niveau=g('mc-niveau');
+    c.tel=g('mc-tel');c.email=g('mc-email');c.cp=cp;c.ville=ville;
+    c.notes=g('mc-notes');c.dispo=g('mc-dispo');c.dispo_date=g('mc-dispo-date');
+    c.taux=g('mc-taux');c.pretention=g('mc-pretention');
+    candSave(); closeModalCand(); candRenderList(); renderFicheHeader(editingCandId);
+  } else {
+    var nc={id:uid(),nom:nom,prenom:prenom,qualif:g('mc-qualif'),niveau:g('mc-niveau'),
+      tel:g('mc-tel'),email:g('mc-email'),cp:cp,ville:ville,
+      taux:g('mc-taux'),pretention:g('mc-pretention'),
+      dispo:g('mc-dispo')||'dispo',dispo_date:g('mc-dispo-date'),
+      notes:g('mc-notes'),journal:[],historique:[],checks:{},
+      competences:{},hab_dates:{},mission:{},createdAt:today()};
+    DB.push(nc); candSave(); closeModalCand(); candRenderList(); candOpenFiche(nc.id);
+  }
+}
+
+function deleteCand(cid){
+  if(!confirm('Supprimer ce candidat ?')) return;
+  DB=DB.filter(function(c){ return c.id!==cid; });
+  currentId=null; candSave(); candRenderList();
+  document.getElementById('fiche-hd').style.display='none';
+  document.getElementById('fiche-body').innerHTML='<div class="fiche-empty"><div class="fiche-empty-icon">👤</div><div>Sélectionner un candidat</div></div>';
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+function exportCandidats(){
+  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='candidats_v2_'+today()+'.json'; a.click();
+}
+
+// PDF CV simplifié
+function genCVPDF(cid){
+  var c=DB.find(function(x){ return x.id===cid; });
+  if(!c){ alert('Candidat introuvable'); return; }
+  if(typeof window.jspdf==='undefined'){ alert('PDF non disponible — vérifiez la connexion internet'); return; }
+  var doc=new window.jspdf.jsPDF();
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text((c.prenom||'')+' '+(c.nom||''), 20, 25);
+  doc.setFontSize(13); doc.setFont('helvetica','normal');
+  doc.text((c.qualif||'')+(c.niveau?' — Niveau '+c.niveau:''), 20, 35);
+  doc.setFontSize(10);
+  var y=50;
+  if(c.tel){ doc.text('Tél : '+c.tel, 20, y); y+=8; }
+  if(c.email){ doc.text('Email : '+c.email, 20, y); y+=8; }
+  if(c.cp||c.ville){ doc.text('Localisation : '+(c.cp?c.cp+' ':'')+c.ville, 20, y); y+=8; }
+  if(c.taux){ doc.text('Taux brut : '+c.taux+'€/h', 20, y); y+=8; }
+  y+=5;
+  doc.setFont('helvetica','bold');
+  doc.text('Établi par : '+(AGENCE.nom||'—'), 20, y); y+=6;
+  doc.setFont('helvetica','italic');
+  doc.text(AGENCE.tel||'', 20, y);
+  doc.save('CV_'+c.nom+'_'+c.prenom+'_'+today()+'.pdf');
+}
+
+function candSetView(v){
+  document.querySelectorAll('.sr-item').forEach(function(el){ el.classList.remove('on'); });
+  event.currentTarget.classList.add('on');
+  currentView = v;
+  if(v==='list'){
+    document.getElementById('side-left').style.display='flex';
+    document.getElementById('fiche-area').style.display='flex';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeModalCand();
+});
+
+loadData();
+
+// Récupérer filtre CRM si vient du module CRM
+(function() {
+  try {
+    var fromCRM = sessionStorage.getItem('cand_from_crm');
+    var qualifFilter = sessionStorage.getItem('cand_filter_qualif');
+    if (fromCRM) {
+      sessionStorage.removeItem('cand_from_crm');
+      sessionStorage.removeItem('cand_filter_qualif');
+      if (qualifFilter) {
+        var srch = document.getElementById('cand-search');
+        if (srch) {
+          srch.value = qualifFilter;
+          // Banner info
+          var banner = document.createElement('div');
+          banner.style.cssText = 'background:#FFF4EE;border:1px solid #f97316;padding:8px 12px;border-radius:6px;font-size:11px;color:#c2410c;font-family:var(--mono);margin-bottom:8px;';
+          banner.innerHTML = '🔍 Filtre CRM actif : <strong>' + qualifFilter + '</strong> — <a href="#" onclick="this.parentNode.remove();document.getElementById(\'cand-search\').value=\'\';candRenderList();return false;" style="color:var(--accent)">Effacer</a>';
+          var list = document.getElementById('cand-list');
+          if (list && list.parentNode) list.parentNode.insertBefore(banner, list);
+        }
+      }
+    }
+  } catch(e) {}
+})();
+
+candRenderList();
+</script>
+</body>
+</html>

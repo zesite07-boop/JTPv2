@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+/* ═══════════════════════════════════════
+   RESET & VARIABLES
+═══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F4F6FA;
+  --white:#ffffff;
+  --border:#EDEEF2;
+  --border2:#D8DBE5;
+  --text:#1e293b;
+  --text2:#334155;
+  --muted:#94a3b8;
+  --muted2:#64748b;
+  --accent:#f97316;
+  --green:#22c55e;
+  --green2:#16a34a;
+  --blue:#3b82f6;
+  --amber:#f59e0b;
+  --red:#ef4444;
+  --purple:#a855f7;
+  --cyan:#06b6d4;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",monospace;
+  --nav-w:224px;
+  --top-h:54px;
+  --r:8px;
+  --r-lg:12px;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+}
+
+html,body{
+  height:100%;
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+button,input,select,textarea{
+  font-family:var(--sans);
+  font-size:14px;
+}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ═══════════════════════════════════════
+   SIDEBAR NAV
+═══════════════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;bottom:0;
+  width:var(--nav-w);
+  background:var(--white);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  z-index:200;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+
+.nav-logo{
+  height:var(--top-h);
+  padding:0 18px;
+  display:flex;align-items:center;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.nav-logo-text{
+  font-size:17px;font-weight:600;
+  color:var(--text);letter-spacing:-.3px;
+}
+.nav-logo-text em{color:var(--accent);font-style:normal;}
+.nav-logo-sub{
+  font-size:9px;color:var(--muted);
+  font-family:var(--mono);letter-spacing:.4px;
+  margin-left:8px;margin-top:1px;
+}
+
+.nav-section{
+  font-size:9px;font-weight:600;
+  color:var(--muted);letter-spacing:1.4px;
+  text-transform:uppercase;
+  padding:14px 18px 4px;
+  flex-shrink:0;
+}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;
+  cursor:pointer;
+  border-right:3px solid transparent;
+  transition:background .1s, color .1s;
+  color:var(--muted2);
+  font-size:12.5px;font-weight:400;
+  user-select:none;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.nav-item:hover{background:#F8F9FB;color:var(--text);}
+.nav-item.active{
+  background:#FFF4EE;
+  color:var(--accent);
+  border-right-color:var(--accent);
+  font-weight:500;
+}
+.nav-item.active .nav-dot{opacity:1;}
+
+.nav-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+  opacity:.6;
+  transition:opacity .1s;
+}
+
+.nav-badge{
+  margin-left:auto;
+  font-size:9px;font-weight:600;
+  font-family:var(--mono);
+  padding:1px 6px;
+  border-radius:10px;
+  white-space:nowrap;
+}
+.nb-orange{background:#FFF4EE;color:var(--accent);}
+.nb-green{background:#DCFCE7;color:var(--green2);}
+.nb-purple{background:#F3E8FF;color:#9333ea;}
+.nb-red{background:#FEE2E2;color:#dc2626;}
+.nb-blue{background:#DBEAFE;color:#2563eb;}
+
+.nav-divider{
+  height:1px;background:var(--border);
+  margin:4px 18px;flex-shrink:0;
+}
+
+.nav-bottom{
+  margin-top:auto;
+  padding:12px 18px;
+  border-top:1px solid var(--border);
+  font-family:var(--mono);
+  font-size:9px;color:var(--muted);
+  flex-shrink:0;
+}
+
+/* ═══════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════ */
+.topbar{
+  position:fixed;top:0;
+  left:var(--nav-w);right:0;
+  height:var(--top-h);
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 22px;gap:10px;
+  z-index:100;
+}
+.topbar-title{
+  font-size:16px;font-weight:600;
+  color:var(--text);letter-spacing:-.2px;
+}
+.topbar-sub{
+  font-size:11px;color:var(--muted);
+  margin-left:4px;margin-top:1px;
+}
+.topbar-right{
+  display:flex;align-items:center;
+  gap:8px;margin-left:auto;
+}
+.topbar-chip{
+  display:flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:500;
+  padding:4px 10px;
+  border-radius:20px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--muted2);
+  white-space:nowrap;
+}
+.topbar-chip strong{color:var(--text);font-weight:600;}
+
+.btn{
+  padding:7px 14px;
+  border-radius:6px;
+  cursor:pointer;border:none;
+  font-size:12px;font-weight:500;
+  transition:opacity .12s, background .12s;
+  white-space:nowrap;
+}
+.btn:hover{opacity:.85;}
+.btn-ghost{
+  background:var(--white);
+  border:1px solid var(--border2);
+  color:var(--muted2);
+}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);opacity:1;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* Burger */
+.burger{
+  display:none;
+  width:36px;height:36px;
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:6px;
+  align-items:center;justify-content:center;
+  cursor:pointer;
+  position:fixed;top:9px;left:12px;
+  z-index:300;
+  font-size:17px;color:var(--muted2);
+}
+
+/* ═══════════════════════════════════════
+   MAIN
+═══════════════════════════════════════ */
+.main{
+  position:fixed;
+  top:var(--top-h);
+  left:var(--nav-w);
+  right:0;bottom:0;
+  overflow-y:auto;
+  background:var(--bg);
+}
+
+/* ═══════════════════════════════════════
+   KPI STRIP
+═══════════════════════════════════════ */
+.kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:14px 22px;
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.kpi-card{
+  background:var(--bg);
+  border-radius:var(--r);
+  padding:12px 14px;
+  cursor:pointer;
+  transition:box-shadow .12s;
+}
+.kpi-card:hover{box-shadow:var(--shadow);}
+.kpi-n{
+  font-size:21px;font-weight:600;
+  line-height:1.1;
+  font-family:var(--mono);
+}
+.kpi-l{
+  font-size:10px;color:var(--muted);
+  margin-top:3px;letter-spacing:.2px;
+}
+.kpi-bar{
+  height:3px;background:#E2E8F0;
+  border-radius:2px;margin-top:8px;
+  overflow:hidden;
+}
+.kpi-bar-fill{
+  height:100%;border-radius:2px;
+  transition:width .5s cubic-bezier(.22,1,.36,1);
+}
+
+/* ═══════════════════════════════════════
+   BOARD / GROUPES
+═══════════════════════════════════════ */
+.board{
+  padding:14px 22px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+.group{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.group-hd{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;
+  cursor:pointer;
+  border-left:4px solid transparent;
+  transition:background .1s;
+  user-select:none;
+}
+.group-hd:hover{background:#FAFBFF;}
+.gh-orange{border-left-color:var(--accent);}
+.gh-red{border-left-color:var(--red);}
+.gh-blue{border-left-color:var(--blue);}
+.gh-purple{border-left-color:var(--purple);}
+.gh-amber{border-left-color:var(--amber);}
+.gh-gray{border-left-color:var(--muted);}
+.gh-green{border-left-color:var(--green);}
+
+.group-title{
+  font-size:13px;font-weight:600;
+  color:var(--text);
+}
+.group-count{
+  font-size:11px;color:var(--muted);
+}
+.group-chev{
+  margin-left:auto;
+  font-size:11px;color:var(--muted);
+  transition:transform .2s;
+  flex-shrink:0;
+}
+.group-chev.open{transform:rotate(180deg);}
+
+.group-body{display:none;}
+.group-body.open{display:block;}
+
+/* Colonnes headers */
+.col-hds{
+  display:grid;gap:0;
+  padding:5px 16px;
+  background:#F8F9FB;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid #F0F2F7;
+}
+.col-hd{
+  font-size:9px;font-weight:600;
+  color:var(--muted);
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  font-family:var(--mono);
+}
+
+/* Lignes pulse */
+.pulse-row{
+  display:grid;gap:0;
+  align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid #F8F9FB;
+  cursor:pointer;
+  transition:background .1s;
+}
+.pulse-row:last-child{border-bottom:none;}
+.pulse-row:hover{background:#FAFBFF;}
+.pulse-row:hover .row-name{color:var(--accent);}
+
+.row-name{
+  font-size:13px;font-weight:500;
+  color:var(--text);
+  transition:color .1s;
+  line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-sub{
+  font-size:10px;color:var(--muted);
+  margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row-val{
+  font-size:12px;font-weight:500;
+  color:var(--text2);
+}
+
+/* Empty state */
+.group-empty{
+  padding:18px 16px;
+  text-align:center;
+  font-size:11px;color:var(--muted);
+  font-family:var(--mono);
+}
+
+/* Plus button */
+.group-more{
+  padding:8px 16px;
+  font-size:11px;color:var(--muted);
+  font-style:italic;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+}
+.group-more:hover{color:var(--accent);}
+
+/* ═══════════════════════════════════════
+   STATUS BUTTONS
+═══════════════════════════════════════ */
+.sb{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:5px 10px;border-radius:6px;
+  font-size:11px;font-weight:500;color:#fff;
+  min-width:90px;text-align:center;
+  border:none;cursor:pointer;
+  transition:opacity .12s;
+  font-family:var(--sans);
+  white-space:nowrap;
+}
+.sb:hover{opacity:.85;}
+.sb-green{background:var(--green);}
+.sb-orange{background:var(--accent);}
+.sb-amber{background:var(--amber);}
+.sb-red{background:var(--red);}
+.sb-blue{background:var(--blue);}
+.sb-purple{background:var(--purple);}
+.sb-gray{background:var(--muted);}
+.sb-cyan{background:var(--cyan);}
+
+/* Action tags */
+.at{
+  font-size:10px;font-weight:500;
+  padding:3px 8px;border-radius:4px;
+  white-space:nowrap;
+}
+.at-orange{background:#FFF4EE;color:var(--accent);}
+.at-red{background:#FEE2E2;color:#dc2626;}
+.at-amber{background:#FEF3C7;color:#d97706;}
+.at-blue{background:#DBEAFE;color:#2563eb;}
+.at-green{background:#DCFCE7;color:var(--green2);}
+.at-gray{background:#F1F5F9;color:var(--muted2);}
+.at-purple{background:#F3E8FF;color:#7c3aed;}
+
+/* ═══════════════════════════════════════
+   PLACEHOLDER MODULE
+═══════════════════════════════════════ */
+.module-ph{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  height:70vh;
+  color:var(--muted);
+  font-family:var(--mono);
+  font-size:12px;gap:10px;
+}
+.module-ph-icon{
+  width:52px;height:52px;
+  border-radius:var(--r-lg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  margin-bottom:4px;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE MOBILE
+═══════════════════════════════════════ */
+@media(max-width:768px){
+  :root{--nav-w:0px;}
+  .nav{
+    transform:translateX(-224px);
+    width:224px;
+  }
+  .nav.open{transform:translateX(0);}
+  .main,.topbar{left:0;}
+  .burger{display:flex;}
+  .topbar{padding-left:58px;}
+  .kpi-strip{grid-template-columns:1fr 1fr;}
+  .topbar-chip{display:none;}
+  .topbar-chip.always{display:flex;}
+}
+
+@media(max-width:480px){
+  .kpi-strip{grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;}
+  .board{padding:10px 14px;gap:8px;}
+  .group-hd{padding:10px 12px;}
+  .col-hds{padding:5px 12px;}
+  .pulse-row{padding:9px 12px;}
+  .topbar{padding-left:54px;}
+  .btn-primary .btn-text{display:none;}
+}
+
+/* Nav overlay backdrop mobile */
+.nav-backdrop{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:199;
+}
+.nav-backdrop.open{display:block;}
+
+/* ═══════════════════════════════════════
+   CRM MODULE
+═══════════════════════════════════════ */
+.crm-wrap{display:none;flex-direction:column;height:100%;}
+.crm-wrap.crm-on{display:flex;}
+
+/* Toolbar */
+.crm-tb{
+  padding:10px 20px;background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  flex-wrap:wrap;flex-shrink:0;
+}
+.crm-search{
+  padding:7px 12px;border:1px solid var(--border);
+  border-radius:6px;font-size:12px;
+  background:var(--bg);color:var(--text);
+  outline:none;width:200px;
+  transition:border .15s;
+}
+.crm-search:focus{border-color:var(--accent);}
+.crm-chips{display:flex;gap:4px;flex-wrap:wrap;}
+.chip{
+  padding:4px 10px;font-size:10px;font-weight:500;
+  border:1px solid var(--border);border-radius:20px;
+  cursor:pointer;background:transparent;color:var(--muted2);
+  font-family:var(--mono);transition:all .12s;
+}
+.chip:hover{border-color:var(--muted);color:var(--text);}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.crm-count{font-size:11px;color:var(--muted);font-family:var(--mono);}
+
+/* Board cols */
+.crm-cols{
+  display:grid;
+  grid-template-columns:2.5fr 1.6fr 120px 2fr;
+  padding:6px 20px;background:#FAFBFC;
+  border-bottom:2px solid var(--border);
+  flex-shrink:0;
+}
+.crm-col-h{
+  font-size:9px;font-weight:600;
+  color:var(--muted);letter-spacing:.7px;
+  text-transform:uppercase;font-family:var(--mono);
+}
+.crm-rows{flex:1;overflow-y:auto;}
+
+/* Board rows */
+.crm-row{
+  display:grid;
+  grid-template-columns:2.5fr 1.6fr 120px 2fr;
+  padding:10px 20px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background .1s;
+  align-items:center;
+  position:relative;
+}
+.crm-row:hover{background:rgba(249,115,22,.025);}
+.crm-row.sel{background:#FFF4EE;}
+.crm-row::before{
+  content:'';position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:transparent;transition:background .1s;
+}
+.crm-row.sel::before{background:var(--accent);}
+
+.crm-nom{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;}
+.crm-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.crm-met{font-size:12px;color:var(--muted2);}
+.crm-na-t{font-size:10px;font-weight:600;font-family:var(--mono);}
+.crm-na-d{font-size:11px;font-family:var(--mono);}
+.crm-na-x{font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+.crm-od{color:var(--red);}
+.crm-td{color:var(--amber);}
+.crm-ok{color:var(--muted2);}
+
+/* Status badges (pills) */
+.crm-badge{
+  display:inline-block;padding:3px 9px;
+  border-radius:20px;font-size:10px;
+  font-weight:600;font-family:var(--mono);
+  letter-spacing:.2px;
+}
+.cb-froid{background:#F1F5F9;color:#64748b;}
+.cb-tiede{background:#FEF3C7;color:#92400e;}
+.cb-chaud{background:#FFEDD5;color:#c2410c;}
+.cb-client{background:#DCFCE7;color:#15803d;}
+.cb-veille{background:#F3E8FF;color:#7c3aed;}
+
+/* Drawer */
+#crm-drawer{
+  position:fixed;top:var(--top-h);right:0;bottom:0;
+  width:540px;max-width:92vw;
+  background:var(--white);
+  border-left:1px solid var(--border);
+  box-shadow:-6px 0 40px rgba(0,0,0,.1);
+  z-index:201;
+  display:flex;flex-direction:column;
+  transform:translateX(110%);
+  transition:transform .3s cubic-bezier(.22,1,.36,1);
+}
+#crm-drawer.open{transform:translateX(0);}
+#crm-bd{
+  position:fixed;inset:0;top:var(--top-h);
+  background:rgba(15,23,42,.2);
+  z-index:200;opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+#crm-bd.open{opacity:1;pointer-events:all;}
+
+/* Drawer header */
+.dr-hd{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.dr-hd-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.dr-nom{
+  font-size:17px;font-weight:600;color:var(--text);
+  line-height:1.2;flex:1;
+  outline:none;border-radius:4px;
+  padding:2px 4px;margin:-2px -4px;
+}
+.dr-nom:focus{background:var(--bg);box-shadow:0 0 0 2px rgba(249,115,22,.25);}
+.dr-close{
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:22px;line-height:1;
+  padding:0 2px;border-radius:4px;flex-shrink:0;
+}
+.dr-close:hover{background:var(--bg);color:var(--text);}
+.dr-meta{font-size:12px;color:var(--muted2);display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.dr-acts{display:flex;gap:5px;flex-wrap:wrap;}
+.dr-btn{
+  padding:5px 11px;font-size:11px;border-radius:6px;
+  cursor:pointer;border:1px solid var(--border);
+  background:var(--white);color:var(--muted2);
+  transition:all .12s;
+}
+.dr-btn:hover{border-color:var(--accent);color:var(--accent);}
+.dr-btn.ok{background:var(--accent);color:#fff;border-color:var(--accent);}
+.dr-btn.ok:hover{opacity:.85;}
+.dr-btn.gr{background:#DCFCE7;color:#15803d;border-color:#bbf7d0;}
+.dr-btn.rd{color:var(--red);border-color:rgba(239,68,68,.4);}
+.dr-btn.rd:hover{background:#FEE2E2;}
+
+/* Barre action inline */
+.dr-na{
+  padding:7px 10px;border-radius:6px;
+  background:var(--bg);border:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+  margin-top:10px;flex-wrap:wrap;font-family:var(--mono);
+}
+.dr-na.retard{border-color:#fca5a5;background:#FFF5F5;}
+.dr-na.today2{border-color:#fcd34d;background:#FFFBEB;}
+.dr-na-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+.dr-na select,.dr-na input[type=date]{background:transparent;border:none;font-size:11px;color:var(--text);padding:1px 2px;font-family:var(--mono);cursor:pointer;outline:none;}
+.dr-na input[type=text]{flex:1;min-width:80px;background:transparent;border:none;font-size:12px;color:var(--text);font-family:var(--sans);outline:none;}
+
+/* Drawer body sections */
+.dr-body{flex:1;overflow-y:auto;}
+.dr-sect{border-bottom:1px solid var(--border);}
+.dr-sect-h{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;cursor:pointer;user-select:none;transition:background .1s;}
+.dr-sect-h:hover{background:var(--bg);}
+.dr-sect-t{font-size:10px;font-weight:600;color:var(--muted2);letter-spacing:.4px;text-transform:uppercase;font-family:var(--mono);}
+.dr-sect-c{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.dr-sect-body{padding:10px 18px 14px;}
+.dr-sect-body.cl{display:none;}
+
+/* Fields in drawer */
+.dr-fg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.dr-fg1{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px;}
+.dr-f{display:flex;flex-direction:column;gap:2px;}
+.dr-f label{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.3px;text-transform:uppercase;}
+.dr-f input,.dr-f select,.dr-f textarea{
+  background:transparent;border:1px solid transparent;
+  color:var(--text);padding:4px 6px;border-radius:4px;
+  font-size:12px;transition:border .12s;width:100%;
+}
+.dr-f input:hover,.dr-f select:hover,.dr-f textarea:hover{border-color:var(--border);}
+.dr-f input:focus,.dr-f select:focus,.dr-f textarea:focus{border-color:var(--accent);outline:none;background:var(--bg);}
+.dr-f textarea{resize:vertical;min-height:55px;}
+
+/* Journal entries */
+.dr-je{display:flex;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.dr-je:last-of-type{border:none;}
+.dr-jt{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0;font-family:var(--mono);}
+.jt-appel{background:#EFF6FF;color:#1d4ed8;}
+.jt-email{background:#F3E8FF;color:#7c3aed;}
+.jt-cv{background:#FFFBEB;color:#92400e;}
+.jt-rdv{background:#DCFCE7;color:#15803d;}
+.jt-note{background:#F1F5F9;color:#64748b;}
+.jt-relance{background:#FEE2E2;color:#b91c1c;}
+.dr-jd{font-size:10px;color:var(--muted);font-family:var(--mono);flex-shrink:0;}
+.dr-jx{font-size:12px;flex:1;line-height:1.5;}
+.dr-jdel{color:var(--muted);cursor:pointer;font-size:13px;flex-shrink:0;}
+.dr-jdel:hover{color:var(--red);}
+.dr-j-add{display:grid;grid-template-columns:90px 120px 1fr auto;gap:6px;padding-top:8px;border-top:1px solid var(--border);margin-top:8px;align-items:end;}
+.dr-sf{display:flex;flex-direction:column;gap:2px;}
+.dr-sf label{font-size:9px;color:var(--muted);font-family:var(--mono);}
+.dr-sf input,.dr-sf select{padding:5px 7px;border:1px solid var(--border);border-radius:4px;font-size:11px;background:var(--bg);color:var(--text);width:100%;}
+
+/* Besoin cards */
+.dr-be{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px;}
+.dr-be-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);cursor:pointer;gap:8px;}
+.dr-be-h:hover{background:#F8FAFC;}
+.dr-be-nom{font-size:12px;font-weight:600;}
+.dr-be-meta{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:1px;}
+.dr-be-bd{padding:10px 12px;border-top:1px solid var(--border);}
+.dr-be-bd.cl{display:none;}
+.dr-bebadge{display:inline-block;padding:2px 7px;border-radius:12px;font-size:9px;font-weight:600;font-family:var(--mono);}
+.dbb-ouvert{background:#FFEDD5;color:#c2410c;}
+.dbb-encours{background:#EFF6FF;color:#1d4ed8;}
+.dbb-pourvu{background:#DCFCE7;color:#15803d;}
+.dbb-annule{background:#F1F5F9;color:#64748b;}
+
+/* Modals CRM */
+.crm-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:center;justify-content:center;padding:20px;}
+.crm-ov.open{display:flex;}
+.crm-box{background:var(--white);border-radius:var(--r-lg);padding:22px;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+.crm-box h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;}
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cm-f{display:flex;flex-direction:column;gap:3px;}
+.cm-f.full{grid-column:1/-1;}
+.cm-f label{font-size:10px;color:var(--muted);font-family:var(--mono);font-weight:500;letter-spacing:.3px;}
+.cm-f input,.cm-f select,.cm-f textarea{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;}
+.cm-f input:focus,.cm-f select:focus,.cm-f textarea:focus{border-color:var(--accent);outline:none;background:var(--white);}
+.cm-f textarea{resize:vertical;min-height:60px;}
+.cm-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+
+/* CRM empty */
+.crm-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted);font-family:var(--mono);font-size:12px;gap:8px;}
+
+/* Mobile CRM */
+@media(max-width:768px){
+  .crm-cols,.crm-row{grid-template-columns:2fr 110px;}
+  .crm-cols .crm-col-h:nth-child(2),.crm-cols .crm-col-h:nth-child(4){display:none;}
+  .crm-row>div:nth-child(2),.crm-row>div:nth-child(4){display:none;}
+  #crm-drawer{width:100vw;max-width:100vw;}
+  .dr-fg{grid-template-columns:1fr;}
+  .dr-j-add{grid-template-columns:1fr 1fr;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- NAV BACKDROP MOBILE -->
+<div class="nav-backdrop" id="nav-backdrop" onclick="navClose()"></div>
+
+<!-- BURGER -->
+<button class="burger" id="burger" onclick="navToggle()" aria-label="Menu">&#9776;</button>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">
+    <div>
+      <div class="nav-logo-text" id="nav-name">JT<em>Pilot</em></div>
+    </div>
+    <div class="nav-logo-sub" style="margin-left:auto">v2</div>
+  </div>
+
+  <div class="nav-section">Opérationnel</div>
+  <div class="nav-item active" data-mod="today" onclick="navigateTo('today')">
+    <div class="nav-dot" style="background:var(--accent)"></div>
+    Aujourd'hui
+    <span class="nav-badge nb-red" id="badge-today">—</span>
+  </div>
+  <div class="nav-item" data-mod="tdb" onclick="window.location=\'tdb_v2.html\'">
+    <div class="nav-dot" style="background:var(--blue)"></div>
+    Tableau de Bord
+  </div>
+  <div class="nav-item" data-mod="crm" onclick="navigateTo('crm')">
+    <div class="nav-dot" style="background:var(--blue)"></div>
+    CRM Prospection
+    <span class="nav-badge nb-orange" id="badge-crm">—</span>
+  </div>
+  <div class="nav-item" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">
+    <div class="nav-dot" style="background:var(--green)"></div>
+    Candidats
+    <span class="nav-badge nb-green" id="badge-cands">—</span>
+  </div>
+  <div class="nav-item" data-mod="missions" onclick="window.location=\'missions_v2.html\'">
+    <div class="nav-dot" style="background:var(--purple)"></div>
+    Missions
+    <span class="nav-badge nb-purple" id="badge-missions">—</span>
+  </div>
+  <div class="nav-item" data-mod="marge" onclick="window.location='marge_v2.html'">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    Fiche Marge
+  </div>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section">Pilotage</div>
+  <div class="nav-item" data-mod="tdb" onclick="window.location=\'tdb_v2.html\'">
+    <div class="nav-dot" style="background:var(--blue)"></div>
+    Tableau de Bord RA
+  </div>
+  <div class="nav-item" data-mod="pl" onclick="window.location='pl_v2.html'">
+    <div class="nav-dot" style="background:var(--purple)"></div>
+    Simulateur P&amp;L
+  </div>
+  <div class="nav-item" data-mod="radar" onclick="window.location='radar_v2.html'">
+    <div class="nav-dot" style="background:var(--cyan)"></div>
+    Radar Opportunités
+  </div>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section">Référence</div>
+  <div class="nav-item" data-mod="juridique" onclick="window.location='refs_v2.html'">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    Juridique
+  </div>
+  <div class="nav-item" data-mod="objections" onclick="window.location='refs_v2.html'">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    Objections
+  </div>
+  <div class="nav-item" data-mod="rome" onclick="window.location='refs_v2.html'">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    ROME BTP
+  </div>
+  <div class="nav-item" data-mod="marge-guide" onclick="window.location='marge_guide_v2.html'">
+    <div class="nav-dot" style="background:var(--amber)"></div>
+    Guide Marge
+  </div>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section">Données</div>
+  <div class="nav-item" onclick="exportAll()">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    Export JSON
+  </div>
+  <div class="nav-item" data-mod="parametres" onclick="window.location='parametres_v2.html'">
+    <div class="nav-dot" style="background:var(--muted)"></div>
+    Paramètres
+  </div>
+
+  <div class="nav-bottom" id="nav-clock"></div>
+</nav>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title" id="topbar-title">Aujourd'hui</div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-chip" id="chip-prospects">
+      Prospects <strong id="tk-pros">—</strong>
+    </div>
+    <div class="topbar-chip" id="chip-missions">
+      Missions <strong id="tk-mis">—</strong>
+    </div>
+    <div class="topbar-chip always" id="chip-dispo">
+      Dispo <strong id="tk-dispo">—</strong>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportAll()">Export</button>
+    <button class="btn btn-primary btn-sm" onclick="navigateTo('crm')">
+      <span class="btn-text">+ Besoin</span><span class="btn-icon" style="display:none">+</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <div id="today-view"></div>
+
+<!-- ═══ CRM MODULE ═══ -->
+<div class="crm-wrap" id="crm-native">
+  <!-- Toolbar -->
+  <div class="crm-tb">
+    <input class="crm-search" id="crm-search" type="text" 
+           placeholder="Société, métier, décideur…" 
+           oninput="crmRenderBoard()"/>
+    <div class="crm-chips">
+      <button class="chip on" data-v="" onclick="crmSetChip(this)">TOUS</button>
+      <button class="chip" data-v="froid" onclick="crmSetChip(this)">FROID</button>
+      <button class="chip" data-v="tiede" onclick="crmSetChip(this)">TIÈDE</button>
+      <button class="chip" data-v="chaud" onclick="crmSetChip(this)">CHAUD</button>
+      <button class="chip" data-v="client" onclick="crmSetChip(this)">CLIENT</button>
+      <button class="chip" data-v="veille" onclick="crmSetChip(this)">VEILLE</button>
+    </div>
+    <span class="crm-count" id="crm-count"></span>
+    <div style="margin-left:auto;display:flex;gap:6px;">
+      <button class="btn btn-ghost btn-sm" onclick="crmExportJSON()">Export</button>
+      <button class="btn btn-primary btn-sm" onclick="crmOpenModal()">+ Prospect</button>
+    </div>
+  </div>
+  <!-- Col headers -->
+  <div class="crm-cols">
+    <div class="crm-col-h">Société</div>
+    <div class="crm-col-h">Métier</div>
+    <div class="crm-col-h">Statut</div>
+    <div class="crm-col-h">Prochaine action</div>
+  </div>
+  <!-- Rows -->
+  <div class="crm-rows" id="crm-board"></div>
+</div>
+
+<!-- Drawer backdrop -->
+<div id="crm-bd" onclick="crmCloseDrawer()"></div>
+<!-- Drawer panel -->
+<div id="crm-drawer"></div>
+
+<!-- Modal prospect -->
+<div class="crm-ov" id="crm-modal-prospect">
+  <div class="crm-box">
+    <h3 id="crm-modal-title">Nouveau prospect</h3>
+    <div class="cm-grid">
+      <div class="cm-f full"><label>Entreprise *</label>
+        <input type="text" id="crm-f-nom" placeholder="SARL Dupont Plâtrerie"/></div>
+      <div class="cm-f"><label>Corps de métier</label>
+        <select id="crm-f-metier">
+          <option value="">—</option>
+          <option>Plâtrerie / Plaquiste</option><option>Staff / Stuc / Enduit décoratif</option>
+          <option>Peinture / Ravalement</option><option>Électricité</option>
+          <option>Plomberie / Sanitaire</option><option>CVC / Chauffage</option>
+          <option>Menuiserie / Serrurerie</option><option>Carrelage / Sol</option>
+          <option>Maçonnerie / Gros œuvre</option><option>Charpente / Couverture</option>
+          <option>Façades / ITE</option><option>Étanchéité</option>
+          <option>Échafaudage</option><option>Mixte second œuvre</option>
+        </select></div>
+      <div class="cm-f"><label>Statut</label>
+        <select id="crm-f-statut">
+          <option value="froid">Froid</option><option value="tiede">Tiède</option>
+          <option value="chaud">Chaud</option><option value="client">Client</option>
+          <option value="veille">Veille 90j</option>
+        </select></div>
+      <div class="cm-f"><label>Décideur</label>
+        <input type="text" id="crm-f-decideur" placeholder="M. Dupont — gérant"/></div>
+      <div class="cm-f"><label>Téléphone</label>
+        <input type="tel" id="crm-f-tel"/></div>
+      <div class="cm-f"><label>Email</label>
+        <input type="email" id="crm-f-email"/></div>
+      <div class="cm-f"><label>Zone / Département</label>
+        <input type="text" id="crm-f-zone" placeholder="ex: 92, 93"/></div>
+      <div class="cm-f"><label>Taille</label>
+        <select id="crm-f-taille">
+          <option>TPE (&lt;10)</option><option selected>PME (10-49)</option>
+          <option>ETI (50-249)</option><option>GE (250+)</option>
+        </select></div>
+      <div class="cm-f full"><label>Notes</label>
+        <textarea id="crm-f-notes" placeholder="Contexte, observations…"></textarea></div>
+      <div class="cm-f"><label>Prochaine action — type</label>
+        <select id="crm-f-na-type">
+          <option value="appel">Appel</option><option value="email">Email</option>
+          <option value="rdv">RDV</option><option value="relance">Relance</option>
+        </select></div>
+      <div class="cm-f"><label>Prochaine action — date</label>
+        <input type="date" id="crm-f-na-date"/></div>
+      <div class="cm-f full"><label>Détail action</label>
+        <input type="text" id="crm-f-na-det" placeholder="ex: Envoyer 2 CV plaquiste N3"/></div>
+    </div>
+    <div class="cm-foot">
+      <button class="dr-btn" onclick="crmCloseModal()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="crmSaveProspect()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal besoin -->
+<div class="crm-ov" id="crm-modal-besoin">
+  <div class="crm-box">
+    <h3>Nouveau besoin</h3>
+    <div class="cm-grid">
+      <div class="cm-f full"><label>Qualification *</label>
+        <select id="crm-b-qualif">
+          <option value="">— Sélectionner —</option>
+          <optgroup label="GROS OEUVRE">
+            <option>Macon</option><option>Coffreur-Bancheur</option><option>Ferrailleur</option>
+            <option>Charpentier Bois</option><option>Charpentier Metallique</option>
+            <option>Couvreur</option><option>Etancheur</option>
+          </optgroup>
+          <optgroup label="SECOND OEUVRE">
+            <option>Plaquiste</option><option>Platrerie / Staff</option>
+            <option>Staffeur / Stuqueur</option><option>Peintre en batiment</option>
+            <option>Facadier</option><option>Solier / Moquettiste</option>
+            <option>Carreleur</option><option>Menuisier Poseur</option>
+            <option>Serrurier / Metallier</option><option>Calorifugeur</option>
+            <option>Echafaudeur</option>
+          </optgroup>
+          <optgroup label="CVC / PLOMBERIE">
+            <option>Technicien CVC</option><option>Chauffagiste</option>
+            <option>Plombier Sanitaire</option><option>Installateur CVC</option>
+          </optgroup>
+          <optgroup label="ELECTRICITE">
+            <option>Electricien CFO</option><option>Electricien CFA</option>
+            <option>Tireur de Cables</option>
+          </optgroup>
+          <optgroup label="ENGINS / LEVAGE">
+            <option>Conducteur Engins (CACES R482)</option>
+            <option>Grutier (CACES R487)</option>
+            <option>Conducteur Nacelle (PEMP)</option>
+            <option>Cariste (CACES R489)</option>
+          </optgroup>
+          <optgroup label="ENCADREMENT">
+            <option>Chef de Chantier</option><option>Conducteur de Travaux</option>
+            <option>Chef Equipe</option>
+          </optgroup>
+        </select></div>
+      <div class="cm-f"><label>Nb de personnes</label>
+        <input type="number" id="crm-b-nb" value="1" min="1"/></div>
+      <div class="cm-f"><label>Date souhaitée</label>
+        <input type="date" id="crm-b-date"/></div>
+      <div class="cm-f"><label>Durée</label>
+        <input type="text" id="crm-b-duree" placeholder="ex: 3 semaines"/></div>
+      <div class="cm-f"><label>Statut</label>
+        <select id="crm-b-statut">
+          <option value="ouvert">Ouvert</option><option value="encours">En cours</option>
+          <option value="pourvu">Pourvu</option><option value="annule">Annulé</option>
+        </select></div>
+      <div class="cm-f"><label>Habilitation requise</label>
+        <input type="text" id="crm-b-habilit" placeholder="ex: CACES R482"/></div>
+      <div class="cm-f"><label>Taux client (€/h)</label>
+        <input type="number" id="crm-b-tc" step="0.5"/></div>
+      <div class="cm-f full"><label>Adresse chantier</label>
+        <input type="text" id="crm-b-adresse"/></div>
+      <div class="cm-f full"><label>Notes</label>
+        <textarea id="crm-b-notes"></textarea></div>
+    </div>
+    <div class="cm-foot">
+      <button class="dr-btn" onclick="crmCloseModal()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="crmSaveBesoin()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DONNÉES GLOBALES
+// ═══════════════════════════════════════════════════════
+var crmDB = [], candsDB = [], agenceDB = {}, tdbCfg = {};
+
+function loadAll() {
+  try { crmDB    = JSON.parse(localStorage.getItem('crm_btp_db')   || '[]'); } catch(e){ crmDB=[]; }
+  try { candsDB   = JSON.parse(localStorage.getItem('cands_btp_v2') || '[]'); } catch(e){ candsDB=[]; }
+  try { agenceDB  = JSON.parse(localStorage.getItem('agence_btp')   || '{}'); } catch(e){ agenceDB={}; }
+  try { tdbCfg    = JSON.parse(localStorage.getItem('tdb_cfg')      || '{}'); } catch(e){ tdbCfg={}; }
+  crmDB = crmDB.map(function(p){ if(p.statut) p.statut = p.statut.toLowerCase().trim(); return p; });
+  var el = document.getElementById('nav-name');
+  if(el && agenceDB.nom) el.innerHTML = agenceDB.nom.replace(' ', '<em style="color:var(--accent)">') + '</em>';
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITAIRES
+// ═══════════════════════════════════════════════════════
+function today() { return new Date().toISOString().slice(0,10); }
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(d)  { if(!d) return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); }
+function fmtFull(d){ if(!d) return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function uid()   { return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function isOD(d) { return d && d < today(); }
+function isTD(d) { return d === today(); }
+function daysLeft(d){ if(!d) return null; return Math.round((new Date(d)-new Date(today()))/86400000); }
+function nrm(s)  { return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function fmtCA(n){
+  if(n === null || n === undefined) return '—';
+  n = Math.round(n);
+  if(Math.abs(n) >= 10000) return (Math.round(n/100)/10).toFixed(1).replace('.',',')+'k€';
+  return n.toLocaleString('fr-FR')+'€';
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+var TITLES = {
+  today:'Aujourd\'hui', tdb:'Tableau de Bord', crm:'CRM Prospection',
+  candidats:'Base Candidats', missions:'Missions', marge:'Fiche Marge',
+  pl:'Simulateur P&L', radar:'Radar Opportunités', juridique:'Juridique',
+  objections:'Objections', rome:'ROME BTP', 'marge-guide':'Guide Marge',
+  parametres:'Paramètres'
+};
+
+var COLORS = {
+  today:['var(--accent)','#FFF4EE'],
+  crm:['var(--blue)','#EFF6FF'],
+  candidats:['var(--green)','#F0FDF4'],
+  missions:['var(--purple)','#FAF5FF'],
+  marge:['var(--amber)','#FFFBEB'],
+  tdb:['var(--blue)','#EFF6FF'],
+  pl:['var(--purple)','#FAF5FF'],
+  radar:['var(--cyan)','#ECFEFF'],
+};
+
+function navigateTo(mod) {
+  loadAll();
+  document.querySelectorAll('.nav-item').forEach(function(el){
+    el.classList.toggle('active', el.dataset.mod === mod);
+  });
+  document.getElementById('topbar-title').textContent = TITLES[mod] || mod;
+  navClose();
+
+  var main = document.getElementById('main');
+
+  // CRM natif
+  var crmNative = document.getElementById('crm-native');
+  if(crmNative) crmNative.classList.remove('crm-on');
+
+  if(mod === 'crm') {
+    // main ne change pas - juste activer le CRM
+    crmNative.classList.add('crm-on');
+    document.getElementById('today-view').style.display = 'none';
+    crmRenderBoard();
+  } else if(mod === 'today') {
+    document.getElementById('today-view').style.display = 'block';
+    main.innerHTML = '<div id="today-view"></div>';
+    renderToday();
+  } else {
+    var colors = COLORS[mod] || ['var(--muted)','var(--bg)'];
+    main.innerHTML = '<div class="module-ph">'
+      + '<div class="module-ph-icon" style="background:'+colors[1]+';color:'+colors[0]+'">&#9881;</div>'
+      + '<div style="font-weight:600;color:var(--text2)">'+(TITLES[mod]||mod)+'</div>'
+      + '<div style="color:var(--muted)">Module en construction</div>'
+      + '</div>';
+  }
+  refreshBadges();
+}
+
+// ═══════════════════════════════════════════════════════
+// BADGES ET CHIPS
+// ═══════════════════════════════════════════════════════
+function refreshBadges() {
+  var nChaud   = crmDB.filter(function(p){ return p.statut==='chaud'; }).length;
+  var nClient  = crmDB.filter(function(p){ return p.statut==='client'; }).length;
+  var nDispo   = candsDB.filter(function(c){ return c.dispo==='dispo'; }).length;
+  var nMis     = candsDB.filter(function(c){ return c.dispo==='mission'; }).length;
+  var nRetard  = crmDB.filter(function(p){ return p.nextDate && isOD(p.nextDate); }).length;
+  var nDemar   = candsDB.filter(function(c){
+    return c.dispo==='mission' && c.mission && isTD(c.mission.date_debut);
+  }).length;
+  var nToday   = nDemar + nRetard;
+
+  function set(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+  set('badge-today',   nToday||'—');
+  set('badge-crm',     nChaud+' chauds');
+  set('badge-cands',   nDispo+' dispo');
+  set('badge-missions',nMis||'—');
+  set('tk-pros',       crmDB.length);
+  set('tk-mis',        nMis);
+  set('tk-dispo',      nDispo);
+
+  // Couleur badge today
+  var bt = document.getElementById('badge-today');
+  if(bt) { bt.className = 'nav-badge '+(nToday>0?'nb-red':'nb-gray'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// KPI STRIP
+// ═══════════════════════════════════════════════════════
+function buildKPIStrip() {
+  var nMis    = candsDB.filter(function(c){ return c.dispo==='mission'; }).length;
+  var tc      = parseFloat(tdbCfg.tc||34);
+  var tb      = parseFloat(tdbCfg.tb||15.5);
+  var ff      = parseFloat(tdbCfg.ff||12000);
+  var seuil   = parseFloat(tdbCfg.seuilEtp||9);
+  var hSem    = parseFloat(tdbCfg.h||35);
+  var hMois   = hSem * 47 / 12;
+
+  // Calcul marge BTP réel
+  var charges = 0.43;
+  var sbBase  = nMis * hMois * tb;
+  var ifm     = sbBase * 0.10;
+  var icp     = (sbBase+ifm) * 0.10;
+  var ms      = (sbBase+ifm+icp) * (1+charges);
+  var ca      = nMis * hMois * tc;
+  var mb      = ca - ms;
+  var mbPct   = ca > 0 ? Math.round(mb/ca*1000)/10 : 0;
+  var rbe     = mb - ff;
+  var etpPct  = seuil > 0 ? Math.min(100, Math.round(nMis/seuil*100)) : 0;
+
+  var mbColor = mbPct >= 18 ? 'var(--green)' : mbPct >= 12 ? 'var(--blue)' : 'var(--red)';
+  var etpColor = nMis >= seuil ? 'var(--green)' : nMis >= seuil*0.7 ? 'var(--amber)' : 'var(--red)';
+  var rbeColor = rbe > 0 ? 'var(--purple)' : 'var(--red)';
+
+  var kpis = [
+    {
+      n: nMis+' ETP',
+      l: 'Seuil '+seuil+' — '+(nMis>=seuil?'atteint ✓':'à combler'),
+      c: etpColor,
+      pct: etpPct,
+      pc: etpColor,
+      mod: 'tdb'
+    },
+    {
+      n: mbPct+'%',
+      l: 'Marge brute — obj 18%',
+      c: mbColor,
+      pct: Math.min(100, Math.round(mbPct/18*100)),
+      pc: mbColor,
+      mod: 'tdb'
+    },
+    {
+      n: fmtCA(ca),
+      l: 'CA estimé mensuel',
+      c: 'var(--accent)',
+      pct: tdbCfg.objCa>0 ? Math.min(100,Math.round(ca/tdbCfg.objCa*100)) : 68,
+      pc: 'var(--accent)',
+      mod: 'tdb'
+    },
+    {
+      n: (rbe>=0?'+':'')+fmtCA(rbe),
+      l: 'RBE — FF '+fmtCA(ff),
+      c: rbeColor,
+      pct: rbe > 0 ? Math.min(100, Math.round(rbe/ff*100)) : 10,
+      pc: rbeColor,
+      mod: 'tdb'
+    }
+  ];
+
+  return '<div class="kpi-strip">'
+    + kpis.map(function(k){
+        return '<div class="kpi-card" data-mod="'+k.mod+'" onclick="navigateTo(this.dataset.mod)">'
+          + '<div class="kpi-n" style="color:'+k.c+'">'+k.n+'</div>'
+          + '<div class="kpi-l">'+k.l+'</div>'
+          + '<div class="kpi-bar"><div class="kpi-bar-fill" style="width:'+k.pct+'%;background:'+k.pc+'"></div></div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE HELPER
+// ═══════════════════════════════════════════════════════
+function mkGroup(id, title, count, colorCls, bodyHtml, defaultOpen) {
+  var open = defaultOpen !== false;
+  return '<div class="group" id="grp-'+id+'">'
+    + '<div class="group-hd '+colorCls+'" onclick="toggleGroup(\''+id+'\')">'
+    + '<span class="group-title">'+title+'</span>'
+    + '<span class="group-count">&nbsp;· '+count+'</span>'
+    + '<span class="group-chev'+(open?' open':'')+'" id="chev-'+id+'">▾</span>'
+    + '</div>'
+    + '<div class="group-body'+(open?' open':'')+'" id="body-'+id+'">'+bodyHtml+'</div>'
+    + '</div>';
+}
+
+function toggleGroup(id) {
+  var body = document.getElementById('body-'+id);
+  var chev = document.getElementById('chev-'+id);
+  if(!body) return;
+  body.classList.toggle('open');
+  if(chev) chev.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 1 — DÉMARRAGES DU JOUR
+// ═══════════════════════════════════════════════════════
+function buildDemarrages() {
+  var td = today();
+  var rows = candsDB.filter(function(c){
+    return c.mission && c.mission.date_debut && c.mission.date_debut === td;
+  });
+
+  if(!rows.length) {
+    return mkGroup('demar', 'Démarrages du jour', '0 mission', 'gh-orange',
+      '<div class="group-empty">Aucun démarrage prévu aujourd\'hui ✓</div>', false);
+  }
+
+  var cols = 'grid-template-columns:2fr 1.1fr 1fr 0.9fr 1fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Intérimaire — Client</div>'
+    + '<div class="col-hd">Statut</div>'
+    + '<div class="col-hd">Qualification</div>'
+    + '<div class="col-hd">TXH</div>'
+    + '<div class="col-hd">Action</div>'
+    + '</div>';
+
+  var body = rows.map(function(c){
+    var contrat = c.checks && c.checks.contrat_signe;
+    var rh = c.checks && c.checks.rh_vierge;
+    var sb, action;
+    if(contrat && rh) {
+      sb='sb-green'; action='<span class="at at-green">Confirmé</span>';
+    } else if(!contrat) {
+      sb='sb-amber'; action='<span class="at at-amber">Contrat à envoyer</span>';
+    } else {
+      sb='sb-red'; action='<span class="at at-red">RH manquant</span>';
+    }
+    var txh = (c.mission&&c.mission.tc) ? c.mission.tc+'€/h' : (c.taux ? c.taux+'€/h' : '—');
+    return '<div class="pulse-row" style="'+cols+'" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">'
+      + '<div><div class="row-name">'+esc((c.prenom||'')+' '+c.nom)+'</div>'
+      + '<div class="row-sub">'+esc(c.mission&&c.mission.client?c.mission.client:'—')+'</div></div>'
+      + '<div><button class="sb '+sb+'" style="pointer-events:none">Démarrage</button></div>'
+      + '<div class="row-val">'+esc(c.qualif||'—')+'</div>'
+      + '<div class="row-val">'+txh+'</div>'
+      + '<div>'+action+'</div>'
+      + '</div>';
+  }).join('');
+
+  return mkGroup('demar', 'Démarrages du jour', rows.length+' mission'+(rows.length>1?'s':''), 'gh-orange', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 2 — BESOINS NON POURVUS
+// ═══════════════════════════════════════════════════════
+function buildBesoins() {
+  var list = [];
+  crmDB.forEach(function(p){
+    (p.besoins||[]).forEach(function(b){
+      if(!b.clos && (b.statut==='ouvert'||b.statut==='encours')) {
+        // Compter profils dispo correspondants
+        var q0 = nrm(b.qualif||'').split(' ')[0];
+        var vivier = candsDB.filter(function(c){
+          return c.dispo==='dispo' && nrm(c.qualif||'').indexOf(q0)>=0;
+        }).length;
+        list.push({
+          client: p.nom||'—',
+          qualif: b.qualif||'—',
+          nb: b.nb||1,
+          date: b.date||'',
+          tc: b.taux_client||b.tauxClient||'—',
+          statut: b.statut,
+          vivier: vivier,
+          pid: p.id,
+          bid: b.id
+        });
+      }
+    });
+  });
+  list.sort(function(a,b){ return (a.date||'9999').localeCompare(b.date||'9999'); });
+
+  if(!list.length) {
+    return mkGroup('besoins', 'Besoins non pourvus', '0 ouvert', 'gh-red',
+      '<div class="group-empty">Aucun besoin ouvert ✓</div>', false);
+  }
+
+  var cols = 'grid-template-columns:2fr 1.1fr 1fr 0.9fr 1fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Besoin — Client</div>'
+    + '<div class="col-hd">Urgence</div>'
+    + '<div class="col-hd">Vivier dispo</div>'
+    + '<div class="col-hd">TC client</div>'
+    + '<div class="col-hd">Action</div>'
+    + '</div>';
+
+  var shown = list.slice(0,8);
+  var body = shown.map(function(b){
+    var dl = daysLeft(b.date);
+    var sb, urgLabel, action;
+    if(dl===null||dl>7) {
+      sb='sb-blue'; urgLabel='En cours';
+      action='<span class="at at-blue">Sourcer</span>';
+    } else if(dl<=0) {
+      sb='sb-red'; urgLabel='Aujourd\'hui';
+      action='<span class="at at-red">Envoyer CV</span>';
+    } else if(dl<=2) {
+      sb='sb-orange'; urgLabel='J+'+dl;
+      action='<span class="at at-orange">Relancer</span>';
+    } else {
+      sb='sb-amber'; urgLabel='J+'+dl;
+      action='<span class="at at-amber">Préparer</span>';
+    }
+    var vivierTxt = b.vivier > 0 ? b.vivier+' dispo' : '<span style="color:var(--red)">0 dispo</span>';
+    var tcTxt = b.tc && b.tc !== '—' ? b.tc+'€/h' : '—';
+    return '<div class="pulse-row" style="'+cols+'" data-mod="crm" onclick="navigateTo(this.dataset.mod)">'
+      + '<div><div class="row-name">'+esc(b.qualif)+(b.nb>1?' ×'+b.nb:'')+'</div>'
+      + '<div class="row-sub">'+esc(b.client)+'</div></div>'
+      + '<div><button class="sb '+sb+'" style="pointer-events:none">'+urgLabel+'</button></div>'
+      + '<div class="row-val">'+vivierTxt+'</div>'
+      + '<div class="row-val">'+tcTxt+'</div>'
+      + '<div>'+action+'</div>'
+      + '</div>';
+  }).join('');
+
+  if(list.length > 8) {
+    body += '<div class="group-more" onclick="navigateTo(\'crm\')">'+(list.length-8)+' autres besoins → voir CRM</div>';
+  }
+
+  return mkGroup('besoins', 'Besoins non pourvus', list.length+' ouvert'+(list.length>1?'s':''), 'gh-red', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 3 — FINS DE MISSION J-7
+// ═══════════════════════════════════════════════════════
+function buildFins() {
+  var fins = candsDB.filter(function(c){
+    if(c.dispo!=='mission'||!c.mission||!c.mission.date_fin) return false;
+    var dl = daysLeft(c.mission.date_fin);
+    return dl!==null && dl>=0 && dl<=7;
+  }).sort(function(a,b){
+    return daysLeft(a.mission.date_fin) - daysLeft(b.mission.date_fin);
+  });
+
+  if(!fins.length) {
+    return mkGroup('fins', 'Fins de mission — 7 jours', '0 mission', 'gh-blue',
+      '<div class="group-empty">Aucune fin imminente</div>', false);
+  }
+
+  var tc = parseFloat(tdbCfg.tc||34);
+  var hSem = parseFloat(tdbCfg.h||35);
+  var hMois = hSem * 47 / 12;
+
+  var cols = 'grid-template-columns:2fr 1.1fr 1fr 0.9fr 1fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Intérimaire — Client</div>'
+    + '<div class="col-hd">Délai</div>'
+    + '<div class="col-hd">Fin prévue</div>'
+    + '<div class="col-hd">Impact €</div>'
+    + '<div class="col-hd">Action</div>'
+    + '</div>';
+
+  var body = fins.map(function(c){
+    var dl = daysLeft(c.mission.date_fin);
+    var sb = dl===0?'sb-red':dl<=2?'sb-orange':'sb-amber';
+    var label = dl===0?'Aujourd\'hui':'J+'+dl;
+    var tcM = c.mission.tc ? parseFloat(c.mission.tc) : tc;
+    var impactMois = Math.round(tcM * hMois / 100) / 10;
+    return '<div class="pulse-row" style="'+cols+'" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">'
+      + '<div><div class="row-name">'+esc((c.prenom||'')+' '+c.nom)+'</div>'
+      + '<div class="row-sub">'+esc(c.mission.client||'—')+'</div></div>'
+      + '<div><button class="sb '+sb+'" style="pointer-events:none">'+label+'</button></div>'
+      + '<div class="row-val" style="font-family:var(--mono)">'+fmt(c.mission.date_fin)+'</div>'
+      + '<div class="row-val" style="color:var(--amber)">'+impactMois+'k€/mois</div>'
+      + '<div><span class="at at-amber">Décision</span></div>'
+      + '</div>';
+  }).join('');
+
+  return mkGroup('fins', 'Fins de mission — 7 jours', fins.length+' mission'+(fins.length>1?'s':''), 'gh-blue', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 4 — PROSPECTION DU JOUR
+// ═══════════════════════════════════════════════════════
+function buildProspection() {
+  var JTYPES = {
+    appel:{l:'Appel',sb:'sb-blue'},
+    email:{l:'Email',sb:'sb-purple'},
+    rdv:{l:'RDV',sb:'sb-green'},
+    cv:{l:'CV',sb:'sb-amber'},
+    relance:{l:'Relance',sb:'sb-orange'},
+    note:{l:'Note',sb:'sb-gray'}
+  };
+
+  var actions = crmDB.filter(function(p){
+    return p.nextDate && (isOD(p.nextDate)||isTD(p.nextDate));
+  }).sort(function(a,b){
+    return (a.nextDate||'9999').localeCompare(b.nextDate||'9999');
+  });
+
+  if(!actions.length) {
+    return mkGroup('prosp', 'Prospection du jour', '0 action', 'gh-purple',
+      '<div class="group-empty">Aucune action planifiée aujourd\'hui ✓</div>', false);
+  }
+
+  var cols = 'grid-template-columns:2fr 1.1fr 1.2fr 1fr 0.8fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Prospect — Secteur</div>'
+    + '<div class="col-hd">Statut</div>'
+    + '<div class="col-hd">Action</div>'
+    + '<div class="col-hd">Date</div>'
+    + '<div class="col-hd">Retard</div>'
+    + '</div>';
+
+  var SBSTAT = {
+    froid:'sb-gray',tiede:'sb-amber',chaud:'sb-orange',client:'sb-green',veille:'sb-purple'
+  };
+  var LSTAT = {froid:'Froid',tiede:'Tiède',chaud:'Chaud',client:'Client',veille:'Veille'};
+
+  var shown = actions.slice(0,10);
+  var body = shown.map(function(p){
+    var t = JTYPES[p.nextType]||JTYPES.note;
+    var retard = isOD(p.nextDate);
+    var sb = SBSTAT[p.statut]||'sb-gray';
+    var sl = LSTAT[p.statut]||p.statut||'—';
+    return '<div class="pulse-row" style="'+cols+'" data-mod="crm" onclick="navigateTo(this.dataset.mod)">'
+      + '<div><div class="row-name">'+esc(p.nom||'—')+'</div>'
+      + '<div class="row-sub">'+esc(p.metier||p.zone||'—')+'</div></div>'
+      + '<div><button class="sb '+sb+'" style="pointer-events:none">'+sl+'</button></div>'
+      + '<div><button class="sb '+t.sb+'" style="pointer-events:none">'+t.l+'</button></div>'
+      + '<div class="row-val" style="font-family:var(--mono);'+(retard?'color:var(--red)':'')+'">'+fmt(p.nextDate)+'</div>'
+      + '<div>'+(retard?'<span class="at at-red">Retard</span>':'<span class="at at-gray">Planifié</span>')+'</div>'
+      + '</div>';
+  }).join('');
+
+  if(actions.length > 10) {
+    body += '<div class="group-more" onclick="navigateTo(\'crm\')">'+(actions.length-10)+' autres actions → voir CRM</div>';
+  }
+
+  return mkGroup('prosp', 'Prospection du jour', actions.length+' action'+(actions.length>1?'s':''), 'gh-purple', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 5 — PRÉAVIS ET CANDIDATS DISPO
+// ═══════════════════════════════════════════════════════
+function buildVivier() {
+  var preav = candsDB.filter(function(c){ return c.dispo==='preavis'; });
+  var dispos = candsDB.filter(function(c){ return c.dispo==='dispo'; });
+  var total = preav.length + dispos.length;
+
+  if(!total) {
+    return mkGroup('vivier', 'Vivier disponible', '0 candidat', 'gh-green',
+      '<div class="group-empty">Aucun candidat disponible — sourcing nécessaire</div>', false);
+  }
+
+  var cols = 'grid-template-columns:2fr 1.1fr 1fr 1fr 1fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Candidat</div>'
+    + '<div class="col-hd">Statut</div>'
+    + '<div class="col-hd">Qualification</div>'
+    + '<div class="col-hd">Zone</div>'
+    + '<div class="col-hd">Action</div>'
+    + '</div>';
+
+  var all = preav.concat(dispos).slice(0,8);
+  var body = all.map(function(c){
+    var sb = c.dispo==='preavis' ? 'sb-cyan' : 'sb-green';
+    var sl = c.dispo==='preavis' ? 'Préavis' : 'Dispo';
+
+    // Vérifier si un besoin ouvert correspond
+    var hasMatch = crmDB.some(function(p){
+      return (p.besoins||[]).some(function(b){
+        return !b.clos && (b.statut==='ouvert'||b.statut==='encours')
+          && nrm(b.qualif||'').indexOf(nrm(c.qualif||'').split(' ')[0])>=0;
+      });
+    });
+
+    return '<div class="pulse-row" style="'+cols+'" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">'
+      + '<div><div class="row-name">'+esc((c.prenom||'')+' '+c.nom)+'</div>'
+      + '<div class="row-sub">'+(c.taux?c.taux+'€/h — ':'')+(c.ville||c.cp||'')+'</div></div>'
+      + '<div><button class="sb '+sb+'" style="pointer-events:none">'+sl+'</button></div>'
+      + '<div class="row-val">'+esc(c.qualif||'—')+'</div>'
+      + '<div class="row-val" style="font-family:var(--mono)">'+(c.cp||'—')+'</div>'
+      + '<div>'+(hasMatch
+          ? '<span class="at at-orange">Besoin ouvert !</span>'
+          : '<span class="at at-blue">Proposer</span>')+'</div>'
+      + '</div>';
+  }).join('');
+
+  if(total > 8) {
+    body += '<div class="group-more" onclick="navigateTo(\'candidats\')">'+(total-8)+' autres candidats → voir vivier</div>';
+  }
+
+  return mkGroup('vivier', 'Vivier disponible', total+' candidat'+(total>1?'s':''), 'gh-green', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// GROUPE 6 — RECOUVREMENT
+// ═══════════════════════════════════════════════════════
+function buildRecouvrement() {
+  var impaye = parseFloat(tdbCfg.impaye||0);
+  var rhManquants = candsDB.filter(function(c){
+    return c.dispo==='mission' && (!c.journal||c.journal.length===0);
+  });
+  var total = (impaye>0?1:0) + rhManquants.length;
+
+  if(!total) {
+    return mkGroup('recouv', 'Recouvrement', 'À jour', 'gh-gray',
+      '<div class="group-empty">Aucun retard ni RH manquant ✓</div>', false);
+  }
+
+  var cols = 'grid-template-columns:2fr 1.2fr 1fr 1.5fr';
+  var hd = '<div class="col-hds" style="'+cols+'">'
+    + '<div class="col-hd">Sujet</div>'
+    + '<div class="col-hd">Type</div>'
+    + '<div class="col-hd">Montant / Info</div>'
+    + '<div class="col-hd">Action</div>'
+    + '</div>';
+
+  var body = '';
+  if(impaye>0) {
+    body += '<div class="pulse-row" style="'+cols+'" data-mod="tdb" onclick="window.location=\'tdb_v2.html\'">'
+      + '<div><div class="row-name">Factures impayées</div>'
+      + '<div class="row-sub">Retard de règlement client</div></div>'
+      + '<div><button class="sb sb-red" style="pointer-events:none">Retard</button></div>'
+      + '<div class="row-val" style="color:var(--red)">'+fmtCA(impaye)+'</div>'
+      + '<div><span class="at at-red">Relancer client</span></div>'
+      + '</div>';
+  }
+  rhManquants.slice(0,5).forEach(function(c){
+    body += '<div class="pulse-row" style="'+cols+'" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">'
+      + '<div><div class="row-name">'+esc((c.prenom||'')+' '+c.nom)+'</div>'
+      + '<div class="row-sub">'+esc(c.mission&&c.mission.client?c.mission.client:'—')+'</div></div>'
+      + '<div><button class="sb sb-amber" style="pointer-events:none">RH manquant</button></div>'
+      + '<div class="row-val">En mission</div>'
+      + '<div><span class="at at-amber">Envoyer RH</span></div>'
+      + '</div>';
+  });
+
+  return mkGroup('recouv', 'Recouvrement', total+' alerte'+(total>1?'s':''), 'gh-gray', hd+body);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER TODAY — ASSEMBLAGE COMPLET
+// ═══════════════════════════════════════════════════════
+function renderToday() {
+  var sub = new Date().toLocaleDateString('fr-FR',{
+    weekday:'long',day:'numeric',month:'long',year:'numeric'
+  });
+
+  // Topbar sub
+  var ts = document.querySelector('.topbar-sub');
+  if(ts) ts.textContent = sub;
+
+  var html = buildKPIStrip();
+  html += '<div class="board">';
+  html += buildDemarrages();
+  html += buildBesoins();
+  html += buildFins();
+  html += buildProspection();
+  html += buildVivier();
+  html += buildRecouvrement();
+  html += '</div>';
+
+  var tv = document.getElementById('today-view');
+  if(tv) tv.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+function exportAll() {
+  var keys = ['crm_btp_db','cands_btp_v2','jtp_missions','grilles_btp',
+              'agence_btp','tdb_cfg','jtp_securite','jtp_agenda',
+              'jtp_veille','jtp_sequences','jtp_investissements','jtp_objectifs'];
+  var data = {exported:new Date().toISOString(),version:'2.0',app:'JTIPilot v2',data:{}};
+  keys.forEach(function(k){
+    try{ data.data[k]=JSON.parse(localStorage.getItem(k)||'null'); }catch(e){}
+  });
+  var blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jtipilot_v2_backup_'+today()+'.json';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════
+// NAV MOBILE
+// ═══════════════════════════════════════════════════════
+function navToggle() {
+  var nav = document.getElementById('nav');
+  var bd  = document.getElementById('nav-backdrop');
+  var open = nav.classList.toggle('open');
+  bd.classList.toggle('open', open);
+}
+function navClose() {
+  document.getElementById('nav').classList.remove('open');
+  document.getElementById('nav-backdrop').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// HORLOGE + RACCOURCIS + INIT
+// ═══════════════════════════════════════════════════════
+function clock() {
+  var el = document.getElementById('nav-clock');
+  if(el) el.textContent = new Date().toLocaleDateString('fr-FR')
+    +' · '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+  var map = {'1':'today','2':'tdb','3':'crm','4':'candidats','5':'missions','6':'marge'};
+  if(map[e.key]) navigateTo(map[e.key]);
+  if(e.key==='Escape') navClose();
+});
+
+
+// ═══════════════════════════════════════════════════════
+// CRM MODULE — DONNÉES ET STATE
+// ═══════════════════════════════════════════════════════
+var QUALIFS_CRM_FAMILLES = {"GROS OEUVRE": ["Macon", "Macon VRD", "Macon Finisseur", "Coffreur-Bancheur", "Ferrailleur", "Charpentier Bois", "Charpentier Metallique", "Couvreur", "Etancheur", "Demolisseur"], "SECOND OEUVRE": ["Plaquiste", "Platrerie / Staff", "Staffeur / Stuqueur", "Peintre en batiment", "Facadier", "Solier / Moquettiste", "Carreleur", "Menuisier Poseur", "Menuisier Atelier", "Serrurier / Metallier", "Calorifugeur", "Echafaudeur"], "CVC / PLOMBERIE": ["Technicien CVC", "Chauffagiste", "Plombier Sanitaire", "Installateur CVC", "Technicien Frigoriste", "Technicien Maintenance Batiment"], "ELECTRICITE": ["Electricien CFO", "Electricien CFA", "Tireur de Cables", "Technicien Automatisme"], "ENGINS / LEVAGE": ["Conducteur Engins (CACES R482)", "Grutier (CACES R487)", "Conducteur Grue Mobile", "Conducteur Nacelle (PEMP)", "Mecanicien Engins Chantier", "Cariste (CACES R489)"], "TRAVAUX PUBLICS": ["Canalisateur", "Asphalteur", "Poseur de Bordures", "Ouvrier VRD"], "ENCADREMENT": ["Chef de Chantier", "Conducteur de Travaux", "Chef Equipe", "Animateur QSE"], "BUREAU D'ETUDES": ["Dessinateur Projeteur", "Metreuse / Economiste", "Ingenieur CVC", "Operateur Topographe", "Responsable QSE"]};
+
+var CRM_STATUS = {
+  froid:  {l:'FROID',  cls:'cb-froid'},
+  tiede:  {l:'TIÈDE',  cls:'cb-tiede'},
+  chaud:  {l:'CHAUD',  cls:'cb-chaud'},
+  client: {l:'CLIENT', cls:'cb-client'},
+  veille: {l:'VEILLE', cls:'cb-veille'}
+};
+var CRM_JTYPES = {
+  appel:   {l:'APPEL',   cls:'jt-appel'},
+  email:   {l:'EMAIL',   cls:'jt-email'},
+  cv:      {l:'CV',      cls:'jt-cv'},
+  rdv:     {l:'RDV',     cls:'jt-rdv'},
+  note:    {l:'NOTE',    cls:'jt-note'},
+  relance: {l:'RELANCE', cls:'jt-relance'}
+};
+var CRM_BSTAT = {
+  ouvert:  {l:'OUVERT',   cls:'dbb-ouvert'},
+  encours: {l:'EN COURS', cls:'dbb-encours'},
+  pourvu:  {l:'POURVU',   cls:'dbb-pourvu'},
+  annule:  {l:'ANNULÉ',   cls:'dbb-annule'}
+};
+
+var crmFilter = '';
+var crmPid    = null;
+var crmEditPid = null;
+var crmBesoinPid = null;
+
+function crmUid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+function crmSave(){
+  localStorage.setItem('crm_btp_db', JSON.stringify(crmDB));
+  refreshBadges();
+}
+
+// ── BOARD ────────────────────────────────────────────────────────────────────
+function crmSetChip(btn){
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); });
+  btn.classList.add('on');
+  crmFilter = btn.dataset.v || '';
+  crmRenderBoard();
+}
+
+function crmRenderBoard(){
+  var q = ((document.getElementById('crm-search')||{}).value||'').trim().toLowerCase();
+  var pool = crmDB.filter(function(p){
+    if(crmFilter && p.statut !== crmFilter) return false;
+    if(q){
+      var hay = [p.nom,p.metier,p.zone,p.decideur,p.tel,p.email,p.notes]
+        .filter(Boolean).join(' ').toLowerCase();
+      return q.split(' ').filter(Boolean).every(function(w){ return hay.indexOf(w)>=0; });
+    }
+    return true;
+  });
+  pool.sort(function(a,b){ return (a.nextDate||'9999').localeCompare(b.nextDate||'9999'); });
+
+  var cnt = document.getElementById('crm-count');
+  if(cnt) cnt.textContent = pool.length+' / '+crmDB.length;
+
+  var board = document.getElementById('crm-board');
+  if(!board) return;
+
+  if(!pool.length){
+    board.innerHTML = '<div class="crm-empty"><span>Aucun prospect correspondant</span></div>';
+    return;
+  }
+
+  board.innerHTML = pool.map(function(p){
+    var st  = CRM_STATUS[p.statut]||CRM_STATUS.froid;
+    var naC = p.nextDate?(isOD(p.nextDate)?'crm-od':isTD(p.nextDate)?'crm-td':'crm-ok'):'crm-ok';
+    var naI = p.nextDate?(isOD(p.nextDate)?'⚠ ':isTD(p.nextDate)?'▶ ':''):'';
+    var naT = p.nextType?(CRM_JTYPES[p.nextType]||{l:p.nextType}).l:'';
+    var bo  = (p.besoins||[]).filter(function(b){ return !b.clos&&(b.statut==='ouvert'||b.statut==='encours'); }).length;
+    var boBadge = bo>0?'<sup style="margin-left:4px;background:#FFEDD5;color:#c2410c;font-size:9px;padding:1px 5px;border-radius:3px;font-family:var(--mono);font-weight:700;">'+bo+'</sup>':'';
+    var sub = [p.decideur,p.zone].filter(Boolean).join(' · ');
+    return '<div class="crm-row'+(crmPid===p.id?' sel':'')+'" data-pid="'+p.id+'" onclick="crmOpenDrawer(this.dataset.pid)">'
+      + '<div><div class="crm-nom">'+esc(p.nom)+boBadge+'</div>'+(sub?'<div class="crm-sub">'+esc(sub)+'</div>':'')+'</div>'
+      + '<div><div class="crm-met">'+esc(p.metier||'—')+'</div></div>'
+      + '<div><span class="crm-badge '+st.cls+'">'+st.l+'</span></div>'
+      + '<div>'
+        +(p.nextDate?'<div class="crm-na-t '+naC+'">'+naI+naT+'</div><div class="crm-na-d '+naC+'">'+fmt(p.nextDate)+'</div>':'')
+        +(p.nextDetail?'<div class="crm-na-x">'+esc(p.nextDetail)+'</div>':'')
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ── DRAWER ───────────────────────────────────────────────────────────────────
+function crmOpenDrawer(pid){
+  crmPid = pid;
+  crmRenderBoard();
+  crmRenderDrawer(pid);
+  document.getElementById('crm-drawer').classList.add('open');
+  document.getElementById('crm-bd').classList.add('open');
+}
+
+function crmCloseDrawer(){
+  crmPid = null;
+  document.getElementById('crm-drawer').classList.remove('open');
+  document.getElementById('crm-bd').classList.remove('open');
+  crmRenderBoard();
+}
+
+function crmRenderDrawer(pid){
+  var p = crmDB.find(function(x){ return x.id===pid; }); if(!p) return;
+  var dr = document.getElementById('crm-drawer'); if(!dr) return;
+  var st = CRM_STATUS[p.statut]||CRM_STATUS.froid;
+  var naBar = p.nextDate?(isOD(p.nextDate)?'retard':isTD(p.nextDate)?'today2':''):'';
+
+  // Header
+  var hd = '<div class="dr-hd">'
+    + '<div class="dr-hd-top">'
+    + '<div class="dr-nom" contenteditable="true" data-pid="'+pid+'" data-field="nom" onblur="crmSaveFieldEl(this)">'+esc(p.nom)+'</div>'
+    + '<button class="dr-close" onclick="crmCloseDrawer()">×</button>'
+    + '</div>'
+    + '<div class="dr-meta">'
+    + '<span class="crm-badge '+st.cls+'">'+st.l+'</span>'
+    + (p.metier?'<span>'+esc(p.metier)+'</span>':'')
+    + (p.zone?'<span style="font-family:var(--mono)">'+esc(p.zone)+'</span>':'')
+    + '</div>'
+    + '<div class="dr-acts">'
+    + '<button class="dr-btn ok" data-pid="'+pid+'" onclick="crmOpenModal(this.dataset.pid)">✏ Modifier</button>'
+    + (p.statut==='client'
+        ? '<button class="dr-btn" data-pid="'+pid+'" onclick="crmSetStatut(this.dataset.pid,\'froid\')">↩ Prospect</button>'
+        : '<button class="dr-btn gr" data-pid="'+pid+'" onclick="crmSetStatut(this.dataset.pid,\'client\')">⬆ Client</button>')
+    + '<button class="dr-btn" data-pid="'+pid+'" onclick="crmOpenBesoinModal(this.dataset.pid)">+ Besoin</button>'
+    + '<button class="dr-btn rd" data-pid="'+pid+'" onclick="crmDeleteProspect(this.dataset.pid)">Supprimer</button>'
+    + '</div>'
+    + '<div class="dr-na '+naBar+'">'
+    + '<span class="dr-na-lbl">ACTION</span>'
+    + '<select data-pid="'+pid+'" onchange="crmUpdateNext(this.dataset.pid,this)">'
+    + Object.keys(CRM_JTYPES).filter(function(k){ return k!=='note'; }).map(function(k){
+        return '<option value="'+k+'"'+(p.nextType===k?' selected':'')+'>'+CRM_JTYPES[k].l+'</option>';
+      }).join('')
+    + '</select>'
+    + '<input type="date" data-pid="'+pid+'" value="'+(p.nextDate||'')+'" onchange="crmUpdateNext(this.dataset.pid,this)"'
+    +   ' style="color:'+(isOD(p.nextDate)?'var(--red)':isTD(p.nextDate)?'var(--amber)':'var(--text)')+'"/>'
+    + '<input type="text" data-pid="'+pid+'" value="'+esc(p.nextDetail||'')+'" placeholder="Détail…" onblur="crmUpdateNext(this.dataset.pid,this)"/>'
+    + (isOD(p.nextDate)?'<span style="font-size:9px;font-weight:700;color:var(--red);font-family:var(--mono)">EN RETARD</span>'
+       :isTD(p.nextDate)?'<span style="font-size:9px;font-weight:700;color:var(--amber);font-family:var(--mono)">AUJOURD\'HUI</span>':'')
+    + '</div>'
+    + '</div>';
+
+  // Body sections
+  var bd = '<div class="dr-body">';
+
+  // Infos
+  var metierOpts = ['Plâtrerie / Plaquiste','Staff / Stuc / Enduit décoratif','Peinture / Ravalement',
+    'Électricité','Plomberie / Sanitaire','CVC / Chauffage','Menuiserie / Serrurerie',
+    'Carrelage / Sol','Maçonnerie / Gros œuvre','Charpente / Couverture','Façades / ITE',
+    'Étanchéité','Échafaudage','Mixte second œuvre'];
+  var tailleOpts = ['TPE (<10)','PME (10-49)','ETI (50-249)','GE (250+)'];
+
+  var infosHtml = '<div class="dr-fg">'
+    + '<div class="dr-f"><label>Corps de métier</label><select data-pid="'+pid+'" data-field="metier" onchange="crmSaveFieldEl(this)"><option value="">—</option>'
+    + metierOpts.map(function(m){ return '<option'+(p.metier===m?' selected':'')+'>'+m+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="dr-f"><label>Statut</label><select data-pid="'+pid+'" onchange="crmSetStatut(this.dataset.pid,this.value)">'
+    + Object.keys(CRM_STATUS).map(function(k){ return '<option value="'+k+'"'+(p.statut===k?' selected':'')+'>'+CRM_STATUS[k].l+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="dr-f"><label>Décideur</label><input type="text" value="'+esc(p.decideur||'')+'" data-pid="'+pid+'" data-field="decideur" onblur="crmSaveFieldEl(this)"/></div>'
+    + '<div class="dr-f"><label>Téléphone</label><input type="tel" value="'+esc(p.tel||'')+'" data-pid="'+pid+'" data-field="tel" onblur="crmSaveFieldEl(this)"/></div>'
+    + '<div class="dr-f"><label>Email</label><input type="email" value="'+esc(p.email||'')+'" data-pid="'+pid+'" data-field="email" onblur="crmSaveFieldEl(this)"/></div>'
+    + '<div class="dr-f"><label>Zone</label><input type="text" value="'+esc(p.zone||'')+'" data-pid="'+pid+'" data-field="zone" onblur="crmSaveFieldEl(this)"/></div>'
+    + '<div class="dr-f"><label>Taille</label><select data-pid="'+pid+'" data-field="taille" onchange="crmSaveFieldEl(this)">'
+    + tailleOpts.map(function(t){ return '<option'+(p.taille===t?' selected':'')+'>'+t+'</option>'; }).join('')
+    + '</select></div>'
+    + '</div>'
+    + '<div class="dr-fg1"><div class="dr-f"><label>Notes</label>'
+    + '<textarea data-pid="'+pid+'" data-field="notes" onblur="crmSaveFieldEl(this)">'+esc(p.notes||'')+'</textarea></div></div>';
+  bd += crmDrSect('Infos', '', true, infosHtml);
+
+  // Journal
+  var jArr = (p.journal||[]).slice().reverse();
+  var jHtml = jArr.map(function(e,i){
+    var t = CRM_JTYPES[e.type]||CRM_JTYPES.note;
+    var ri = (p.journal.length-1)-i;
+    var fut = e.date && e.date > today();
+    return '<div class="dr-je"'+(fut?' style="background:#FFFBEB;border-radius:4px;padding:4px 6px;"':'')+'>'
+      + '<span class="dr-jt '+t.cls+'">'+t.l+'</span>'
+      + '<span class="dr-jd" style="'+(fut?'color:var(--amber)':'')+'">'+fmt(e.date)+'</span>'
+      + '<span class="dr-jx">'+esc(e.texte||'')+'</span>'
+      + '<span class="dr-jdel" data-pid="'+pid+'" data-idx="'+ri+'" onclick="crmDelJEntry(this.dataset.pid,parseInt(this.dataset.idx))">×</span>'
+      + '</div>';
+  }).join('') || '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucune action enregistrée</div>';
+
+  jHtml += '<div class="dr-j-add">'
+    + '<div class="dr-sf"><label>Type</label><select id="drj-t-'+pid+'">'
+    + Object.keys(CRM_JTYPES).map(function(k){ return '<option value="'+k+'">'+CRM_JTYPES[k].l+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="dr-sf"><label>Date</label><input type="date" id="drj-d-'+pid+'" value="'+today()+'"/></div>'
+    + '<div class="dr-sf"><label>Détail</label><input type="text" id="drj-x-'+pid+'" placeholder="ex: Appel M. Dupont…"/></div>'
+    + '<div><button class="dr-btn ok" style="margin-top:16px;white-space:nowrap;" data-pid="'+pid+'" onclick="crmAddJEntry(this.dataset.pid)">+ LOG</button></div>'
+    + '</div>';
+  bd += crmDrSect('Journal', (p.journal||[]).length+' entrée'+(((p.journal||[]).length!==1)?'s':''), true, jHtml);
+
+  // Besoins
+  var besoins = p.besoins||[];
+  var bHtml = besoins.map(function(b,bi){
+    var bst = CRM_BSTAT[b.statut]||CRM_BSTAT.ouvert;
+    return '<div class="dr-be">'
+      + '<div class="dr-be-h" onclick="this.nextElementSibling.classList.toggle(\'cl\')">'
+      + '<div><div class="dr-be-nom">'+esc(b.qualif)+'<span style="font-size:11px;font-weight:400;color:var(--muted)"> — '+b.nb+' pers.</span></div>'
+      + (b.date||b.duree?'<div class="dr-be-meta">'+(b.date?fmt(b.date):'')+(b.duree?' · '+esc(b.duree):'')+'</div>':'')
+      + '</div>'
+      + '<div style="display:flex;gap:4px;align-items:center;">'
+      + '<span class="dr-bebadge '+bst.cls+'">'+bst.l+'</span>'
+      + '<button class="dr-btn rd" style="padding:2px 7px;font-size:10px;" data-pid="'+pid+'" data-bi="'+bi+'" onclick="event.stopPropagation();crmDelBesoin(this.dataset.pid,parseInt(this.dataset.bi))">×</button>'
+      + '</div></div>'
+      + '<div class="dr-be-bd cl">'
+      + (b.notes?'<p style="font-size:12px;color:var(--muted2);margin-bottom:4px">'+esc(b.notes)+'</p>':'')
+      + (b.adresse?'<p style="font-size:11px;color:var(--muted);font-family:var(--mono)">📍 '+esc(b.adresse)+'</p>':'')
+      + (b.habilit?'<p style="font-size:11px;color:var(--muted);font-family:var(--mono)">🎫 '+esc(b.habilit)+'</p>':'')
+      + ((b.cvs||[]).length?'<p style="font-size:11px;color:var(--muted2);margin-top:4px">'+b.cvs.length+' CV envoyé'+(b.cvs.length>1?'s':'')+'</p>':'')
+      + '<div style="display:flex;gap:5px;margin-top:6px;">'      + '<button class="dr-btn" data-pid="'+pid+'" data-qualif="'+esc(b.qualif)+'" onclick="event.stopPropagation();crmTrouverProfil(this.dataset.qualif)">🔍 Trouver profil</button>'      + '</div>'      + '</div></div>';  }).join('') || '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucun besoin</div>';
+
+  bHtml += '<button class="dr-btn" style="margin-top:8px;width:100%;" data-pid="'+pid+'" onclick="crmOpenBesoinModal(this.dataset.pid)">+ Ajouter un besoin</button>';
+  bd += crmDrSect('Besoins', besoins.length+' besoin'+(besoins.length!==1?'s':''), false, bHtml);
+
+  // Section Opportunités — profils dispo correspondants
+  var oppList = [];
+  crmDB.forEach(function(pr){ // pas besoin de crmDB ici, on utilise candsDB
+  });
+  var oppCands = candsDB.filter(function(cnd) {
+    if(cnd.dispo !== 'dispo' && cnd.dispo !== 'preavis') return false;
+    var pMet = nrm(p.metier||'');
+    var cQualif = nrm(cnd.qualif||'');
+    return pMet && cQualif && (pMet.split(' ').some(function(w){ return w.length>3 && cQualif.indexOf(w)>=0; }) ||
+      cQualif.split(' ').some(function(w){ return w.length>3 && pMet.indexOf(w)>=0; }));
+  }).slice(0,5);
+
+  if(oppCands.length) {
+    var oppHtml = oppCands.map(function(cnd) {
+      var d = {dispo:'<span style="background:#DCFCE7;color:#15803d">DISPO</span>',preavis:'<span style="background:#ECFEFF;color:#0e7490">PRÉAVIS</span>'}[cnd.dispo]||'';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">'
+        +'<div style="flex:1"><div style="font-size:12px;font-weight:500">'+esc((cnd.prenom||'')+' '+(cnd.nom||''))+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">'+esc(cnd.qualif||'')+(cnd.taux?' · '+cnd.taux+'€/h':'')+'</div></div>'
+        +d
+        +'<button class="dr-btn" style="font-size:10px;padding:3px 8px;" onclick="window.location=\'candidats_v2.html\'">Voir →</button>'
+        +'</div>';
+    }).join('');
+    bd += crmDrSect('Profils disponibles correspondants', oppCands.length+' candidat'+(oppCands.length>1?'s':''), true, oppHtml);
+  }
+
+  bd += '</div>';
+  dr.innerHTML = hd + bd;
+}
+
+function crmDrSect(title, cnt, open, content){
+  return '<div class="dr-sect">'
+    + '<div class="dr-sect-h" onclick="this.nextElementSibling.classList.toggle(\'cl\')">'
+    + '<span class="dr-sect-t">'+title+'</span><span class="dr-sect-c">'+cnt+'</span>'
+    + '</div>'
+    + '<div class="dr-sect-body'+(open?'':' cl')+'">'+content+'</div>'
+    + '</div>';
+}
+
+// ── TROUVER PROFIL ───────────────────────────────────────────────────────────
+function crmTrouverProfil(qualif) {
+  // Sauvegarder le filtre dans sessionStorage et ouvrir le vivier candidats
+  try {
+    sessionStorage.setItem('cand_filter_qualif', qualif || '');
+    sessionStorage.setItem('cand_from_crm', '1');
+  } catch(e) {}
+  window.location = 'candidats_v2.html';
+}
+
+// ── CRUD ─────────────────────────────────────────────────────────────────────
+function crmSaveField(id, field, val){
+  var p = crmDB.find(function(x){ return x.id===id; }); if(!p) return;
+  p[field] = val; crmSave(); crmRenderBoard();
+}
+
+function crmSaveFieldEl(el){
+  var pid = el.dataset.pid; var field = el.dataset.field;
+  if(pid && field) crmSaveField(pid, field, el.value || el.textContent.trim());
+}
+
+function crmSetStatut(id, s){
+  var p = crmDB.find(function(x){ return x.id===id; }); if(!p) return;
+  p.statut = s; crmSave(); crmRenderBoard();
+  if(crmPid===id) crmRenderDrawer(id);
+}
+
+function crmUpdateNext(id, el){
+  var p = crmDB.find(function(x){ return x.id===id; }); if(!p) return;
+  var t=document.querySelector('#crm-drawer select[data-pid="'+id+'"]');
+  var d=document.querySelector('#crm-drawer input[type="date"][data-pid="'+id+'"]');
+  var x=document.querySelector('#crm-drawer input[type="text"][data-pid="'+id+'"]:not([data-field])');
+  if(t) p.nextType=t.value;
+  if(d) p.nextDate=d.value;
+  if(x) p.nextDetail=x.value;
+  crmSave(); crmRenderBoard();
+}
+
+function crmDeleteProspect(id){
+  if(!confirm('Supprimer ce prospect et toutes ses données ?')) return;
+  crmDB = crmDB.filter(function(p){ return p.id!==id; });
+  crmSave(); crmCloseDrawer(); crmRenderBoard();
+}
+
+// Journal
+function crmAddJEntry(pid){
+  var p=crmDB.find(function(x){ return x.id===pid; }); if(!p) return;
+  var t=document.getElementById('drj-t-'+pid);
+  var d=document.getElementById('drj-d-'+pid);
+  var x=document.getElementById('drj-x-'+pid);
+  if(!x||!x.value.trim()) return;
+  if(!p.journal) p.journal=[];
+  p.journal.push({type:(t?t.value:'note'),date:(d?d.value:today()),texte:x.value.trim()});
+  x.value='';
+  crmSave(); crmRenderDrawer(pid);
+}
+
+function crmDelJEntry(pid, idx){
+  var p=crmDB.find(function(x){ return x.id===pid; }); if(!p) return;
+  p.journal.splice(idx,1); crmSave(); crmRenderDrawer(pid);
+}
+
+// Besoins
+function crmOpenBesoinModal(pid){
+  crmBesoinPid = pid;
+  ['crm-b-qualif','crm-b-duree','crm-b-habilit','crm-b-notes','crm-b-adresse'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var nb=document.getElementById('crm-b-nb'); if(nb) nb.value=1;
+  var bd=document.getElementById('crm-b-date'); if(bd) bd.value=today();
+  var bs=document.getElementById('crm-b-statut'); if(bs) bs.value='ouvert';
+  var bt=document.getElementById('crm-b-tc'); if(bt) bt.value='';
+  document.getElementById('crm-modal-besoin').classList.add('open');
+}
+
+function crmSaveBesoin(){
+  var q=(document.getElementById('crm-b-qualif')||{value:''}).value.trim();
+  if(!q){ alert('Qualification obligatoire'); return; }
+  var p=crmDB.find(function(x){ return x.id===crmBesoinPid; }); if(!p) return;
+  if(!p.besoins) p.besoins=[];
+  p.besoins.push({
+    id:crmUid(), qualif:q,
+    nb:parseInt((document.getElementById('crm-b-nb')||{value:1}).value)||1,
+    date:(document.getElementById('crm-b-date')||{value:''}).value,
+    duree:(document.getElementById('crm-b-duree')||{value:''}).value,
+    statut:(document.getElementById('crm-b-statut')||{value:'ouvert'}).value,
+    habilit:(document.getElementById('crm-b-habilit')||{value:''}).value,
+    notes:(document.getElementById('crm-b-notes')||{value:''}).value,
+    tauxClient:(document.getElementById('crm-b-tc')||{value:''}).value,
+    adresse:(document.getElementById('crm-b-adresse')||{value:''}).value,
+    cvs:[]
+  });
+  crmSave(); crmCloseModal();
+  if(crmPid===crmBesoinPid) crmRenderDrawer(crmBesoinPid);
+}
+
+function crmDelBesoin(pid, bi){
+  if(!confirm('Supprimer ce besoin ?')) return;
+  var p=crmDB.find(function(x){ return x.id===pid; }); if(!p) return;
+  p.besoins.splice(bi,1); crmSave();
+  if(crmPid===pid) crmRenderDrawer(pid);
+}
+
+// Modal prospect
+function crmOpenModal(id){
+  crmEditPid = id||null;
+  var mo=document.getElementById('crm-modal-prospect'); if(!mo) return;
+  document.getElementById('crm-modal-title').textContent = id?'Modifier le prospect':'Nouveau prospect';
+  var p = id?crmDB.find(function(x){ return x.id===id; }):null;
+  var flds = {
+    'crm-f-nom':'nom','crm-f-decideur':'decideur','crm-f-tel':'tel',
+    'crm-f-email':'email','crm-f-zone':'zone','crm-f-notes':'notes',
+    'crm-f-na-det':'nextDetail','crm-f-metier':'metier',
+    'crm-f-statut':'statut','crm-f-taille':'taille',
+    'crm-f-na-type':'nextType','crm-f-na-date':'nextDate'
+  };
+  Object.keys(flds).forEach(function(fid){
+    var el=document.getElementById(fid); if(!el) return;
+    el.value = p?(p[flds[fid]]||''):'';
+  });
+  if(!p){
+    var sv=document.getElementById('crm-f-statut'); if(sv) sv.value='froid';
+    var nv=document.getElementById('crm-f-na-type'); if(nv) nv.value='appel';
+    var dv=document.getElementById('crm-f-na-date'); if(dv) dv.value=today();
+  }
+  mo.classList.add('open');
+}
+
+function crmCloseModal(){
+  ['crm-modal-prospect','crm-modal-besoin'].forEach(function(id){
+    var mo=document.getElementById(id); if(mo) mo.classList.remove('open');
+  });
+}
+
+function crmSaveProspect(){
+  var nom=(document.getElementById('crm-f-nom')||{value:''}).value.trim();
+  if(!nom){ alert('Nom obligatoire'); return; }
+  var g=function(id){ return (document.getElementById(id)||{value:''}).value; };
+  if(crmEditPid){
+    var p=crmDB.find(function(x){ return x.id===crmEditPid; }); if(!p) return;
+    p.nom=nom; p.metier=g('crm-f-metier'); p.statut=g('crm-f-statut');
+    p.decideur=g('crm-f-decideur'); p.tel=g('crm-f-tel'); p.email=g('crm-f-email');
+    p.zone=g('crm-f-zone'); p.taille=g('crm-f-taille'); p.notes=g('crm-f-notes');
+    p.nextType=g('crm-f-na-type'); p.nextDate=g('crm-f-na-date'); p.nextDetail=g('crm-f-na-det');
+    crmSave(); crmCloseModal(); crmRenderBoard(); crmRenderDrawer(crmEditPid);
+  } else {
+    var np={
+      id:crmUid(), nom:nom, metier:g('crm-f-metier'), statut:g('crm-f-statut'),
+      decideur:g('crm-f-decideur'), tel:g('crm-f-tel'), email:g('crm-f-email'),
+      zone:g('crm-f-zone'), taille:g('crm-f-taille'), notes:g('crm-f-notes'),
+      nextType:g('crm-f-na-type'), nextDate:g('crm-f-na-date'), nextDetail:g('crm-f-na-det'),
+      journal:[], besoins:[], contacts_list:[], qualifs:[], createdAt:today()
+    };
+    crmDB.push(np); crmSave(); crmCloseModal(); crmRenderBoard(); crmOpenDrawer(np.id);
+  }
+}
+
+function crmExportJSON(){
+  var blob=new Blob([JSON.stringify(crmDB,null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='crm_btp_'+today()+'.json'; a.click();
+}
+
+// Escape ferme drawer ou modal
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){
+    if(document.querySelector('.crm-ov.open')){
+      crmCloseModal(); return;
+    }
+    if(crmPid){ crmCloseDrawer(); return; }
+  }
+});
+
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICATIONS PUSH NAVIGATEUR
+// ═══════════════════════════════════════════════════════
+function notifRequest() {
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function notifSend(titre, corps, tag) {
+  if(!('Notification' in window)) return;
+  if(Notification.permission !== 'granted') return;
+  try {
+    new Notification(titre, {
+      body: corps,
+      tag: tag || 'jtipilot',
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="%23f97316"/><text y="22" x="6" font-size="18" font-family="sans-serif" fill="white">JT</text></svg>'
+    });
+  } catch(e) {}
+}
+
+function checkDailyNotifs() {
+  // Missions sans confirmation ce matin
+  var td = today();
+  var unconf = candsDB.filter(function(c) {
+    return c.dispo === 'mission' && c.mission && c.mission.date_debut === td
+      && (!c.mission.presence || c.mission.presence === '');
+  });
+  if(unconf.length > 0) {
+    notifSend('JTIPilot — Action requise',
+      unconf.length + ' mission(s) démarrent aujourd\'hui sans confirmation de présence',
+      'confirmation');
+  }
+
+  // Fins J-7 sans décision
+  var fins = candsDB.filter(function(c) {
+    var dl = daysLeft((c.mission||{}).date_fin);
+    return c.dispo === 'mission' && dl !== null && dl >= 0 && dl <= 3;
+  });
+  if(fins.length > 0) {
+    notifSend('JTIPilot — Décision urgente',
+      fins.length + ' mission(s) se terminent dans 3 jours — décision requise',
+      'fins');
+  }
+
+  // Actions CRM en retard
+  var retard = crmDB.filter(function(p) {
+    return p.nextDate && p.nextDate < td;
+  });
+  if(retard.length > 3) {
+    notifSend('JTIPilot — Prospection',
+      retard.length + ' actions de prospection en retard',
+      'prospection');
+  }
+}
+
+// Init
+loadAll();
+navigateTo('today');
+clock();
+setInterval(clock, 30000);
+// Demander permission notifications et vérifier les alertes
+setTimeout(function() {
+  notifRequest();
+  checkDailyNotifs();
+}, 2000);
+setInterval(checkDailyNotifs, 3600000); // Vérifier toutes les heures
+setInterval(function(){ loadAll(); refreshBadges(); }, 20000);
+</script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — Référentiels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--text:#1e293b;--text2:#334155;--muted:#94a3b8;--muted2:#64748b;--accent:#f97316;--green:#22c55e;--green2:#16a34a;--blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;--purple:#a855f7;--sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",monospace;--r:8px;--r-lg:12px;--top-h:54px;--shadow:0 1px 4px rgba(0,0,0,.07);}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+button,input,select{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;z-index:100;}
+.tb-back{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;}
+.btn-tab{padding:8px 16px;border-radius:6px 6px 0 0;cursor:pointer;border:1px solid var(--border);border-bottom:none;font-size:12px;font-weight:500;background:var(--bg);color:var(--muted2);margin-right:2px;}
+.btn-tab.on{background:var(--white);color:var(--accent);font-weight:600;}
+.main{padding-top:var(--top-h);}
+.tabs-bar{padding:12px 20px 0;background:var(--white);border-bottom:1px solid var(--border);}
+.page{max-width:900px;margin:0 auto;padding:20px;}
+.card{background:var(--white);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.card-t{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.tab-content{display:none;}
+.tab-content.on{display:block;}
+.jur-section{margin-bottom:20px;}
+.jur-t{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;padding:8px 12px;background:var(--bg);border-radius:6px;border-left:4px solid var(--accent);}
+.jur-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;}
+.jur-table th{padding:6px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);background:#F8FAFC;letter-spacing:.5px;text-transform:uppercase;}
+.jur-table td{padding:8px 10px;border-bottom:1px solid var(--border);}
+.jur-table tr:last-child td{border:none;}
+.jur-note{background:#FFF4EE;border-left:3px solid var(--accent);padding:8px 12px;border-radius:0 6px 6px 0;font-size:11px;margin-bottom:12px;}
+.jur-alert{background:#FEF3C7;border-left:3px solid var(--amber);padding:8px 12px;border-radius:0 6px 6px 0;font-size:11px;margin-bottom:12px;}
+.obj-card{border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .12s;}
+.obj-card:hover{border-color:var(--accent);}
+.obj-card.open{border-color:var(--accent);background:#FFF4EE;}
+.obj-q{font-size:13px;font-weight:600;margin-bottom:0;}
+.obj-r{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6;display:none;}
+.obj-card.open .obj-r{display:block;}
+.rome-card{border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;}
+.rome-t{font-size:13px;font-weight:600;}
+.rome-code{font-size:10px;font-family:var(--mono);color:var(--muted2);background:var(--bg);padding:2px 6px;border-radius:3px;}
+.rome-items{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.rome-item{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--bg);color:var(--muted2);border:1px solid var(--border);}
+.pedag-step{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;position:relative;}
+.pedag-num{position:absolute;top:-12px;left:16px;width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.pedag-t{font-size:14px;font-weight:600;margin-bottom:8px;margin-left:20px;}
+.pedag-body{font-size:12px;color:var(--text2);line-height:1.7;}
+.calc-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:var(--bg);margin:4px 0;font-family:var(--mono);font-size:12px;}
+.calc-lbl{flex:1;color:var(--muted2);}
+.calc-val{font-weight:700;color:var(--text);}
+.calc-op{color:var(--muted);font-size:14px;}
+.zone-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;font-family:var(--mono);}
+.zp-ok{background:#DCFCE7;color:#15803d;}
+.zp-warn{background:#FEF3C7;color:#92400e;}
+.zp-bad{background:#FEE2E2;color:#dc2626;}
+.srch-inp{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;background:var(--bg);outline:none;margin-bottom:12px;}
+.srch-inp:focus{border-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Référentiels</div>
+</div>
+
+<div class="main">
+<div class="tabs-bar">
+  <button class="btn-tab on" onclick="refTab('juridique',this)">Juridique</button>
+  <button class="btn-tab" onclick="refTab('objections',this)">Objections</button>
+  <button class="btn-tab" onclick="refTab('rome',this)">ROME BTP</button>
+  <button class="btn-tab" onclick="refTab('marge-guide',this)">Guide Marge</button>
+  <button class="btn-tab" onclick="refTab('acteurs',this)">Acteurs & Ressources</button>
+</div>
+
+<div class="page">
+
+<!-- JURIDIQUE -->
+<div class="tab-content on" id="tab-juridique">
+  <div class="card">
+    <div class="card-t">Guide Juridique RA — Intérim BTP (IDCC 1351)</div>
+
+    <div class="jur-section">
+      <div class="jur-t">Motifs de recours légaux</div>
+      <table class="jur-table">
+        <thead><tr><th>Motif</th><th>Durée max (renouvellements inclus)</th><th>Carence</th></tr></thead>
+        <tbody>
+          <tr><td>Accroissement temporaire d'activité</td><td>18 mois</td><td>1/3 de la durée totale</td></tr>
+          <tr><td>Remplacement d'un salarié absent</td><td>Durée de l'absence</td><td>Aucune</td></tr>
+          <tr><td>Remplacement d'un salarié passé à temps partiel</td><td>Durée du passage</td><td>Aucune</td></tr>
+          <tr><td>Emploi saisonnier</td><td>Durée de la saison</td><td>Aucune si même poste saisonnier</td></tr>
+          <tr><td>Commande exceptionnelle à l'export</td><td>24 mois</td><td>1/3 de la durée totale</td></tr>
+          <tr><td>Travaux urgents pour sécurité</td><td>9 mois (non renouvelable)</td><td>Aucune</td></tr>
+        </tbody>
+      </table>
+      <div class="jur-alert">⚠ La durée maximale s'apprécie sur la même catégorie de poste pour le même client. Les renouvellements sont inclus dans ce calcul.</div>
+    </div>
+
+    <div class="jur-section">
+      <div class="jur-t">Calcul de la période de carence</div>
+      <div class="jur-note">La carence s'applique après une mission d'accroissement temporaire ou commande exceptionnelle. Elle est calculée sur le même poste de travail chez le même client.<br><br>
+        <strong>Formule :</strong> Carence = Durée totale de la mission (y compris renouvellements) × 1/3<br><br>
+        <strong>Exemples :</strong><br>
+        Mission 6 semaines → Carence 2 semaines<br>
+        Mission 3 mois → Carence 1 mois<br>
+        Mission 18 mois (maximum) → Carence 6 mois
+      </div>
+      <div class="jur-alert">⚠ En cas de remplacement (d'un salarié absent) : pas de carence. Un client peut donc renouveler immédiatement avec un autre salarié absent.</div>
+    </div>
+
+    <div class="jur-section">
+      <div class="jur-t">Égalité de traitement</div>
+      <div class="jur-note">L'intérimaire doit percevoir les mêmes avantages que les salariés permanents du client en place depuis plus de 12 mois :<br>
+        · Primes et indemnités conventionnelles (panier, transport, 13e mois si ancienneté...)<br>
+        · Accès aux équipements collectifs (réfectoire, parking, transport collectif)<br>
+        · Durée du travail et heures supplémentaires identiques
+      </div>
+    </div>
+
+    <div class="jur-section">
+      <div class="jur-t">Renouvellements</div>
+      <table class="jur-table">
+        <thead><tr><th>Règle</th><th>Détail</th></tr></thead>
+        <tbody>
+          <tr><td>Nombre maximal de renouvellements</td><td>2 (pour un total de 3 contrats)</td></tr>
+          <tr><td>Accord préalable du salarié</td><td>Obligatoire, avant l'échéance du contrat initial</td></tr>
+          <tr><td>Motif identique</td><td>Le motif doit rester le même que le contrat initial</td></tr>
+          <tr><td>Durée totale</td><td>Ne peut dépasser la durée maximale légale du motif</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="jur-section">
+      <div class="jur-t">IFM et ICP</div>
+      <div class="jur-note">
+        <strong>IFM (Indemnité de Fin de Mission) : 10% du total des salaires bruts</strong><br>
+        Versée à la fin de chaque contrat sauf : en cas de faute grave, en cas d'embauche en CDI par le client, ou en cas de refus d'une proposition de CDI.<br><br>
+        <strong>ICP (Indemnité Compensatrice de Congés Payés) : 10% du total (salaires bruts + IFM)</strong><br>
+        Versée à chaque fin de mission. Le salarié temporaire n'accumule pas de droits à congés auprès de l'ETT.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECTIONS -->
+<div class="tab-content" id="tab-objections">
+  <div class="card">
+    <div class="card-t">Réponses aux objections commerciales — Intérim BTP</div>
+    <input class="srch-inp" type="text" placeholder="Rechercher une objection…" oninput="objSearch(this.value)"/>
+    <div id="obj-list"></div>
+  </div>
+</div>
+
+<!-- ROME BTP -->
+<div class="tab-content" id="tab-rome">
+  <div class="card">
+    <div class="card-t">Référentiel ROME BTP — Familles métiers</div>
+    <input class="srch-inp" type="text" placeholder="Rechercher un métier, un code ROME…" oninput="romeSearch(this.value)"/>
+    <div id="rome-list"></div>
+  </div>
+</div>
+
+<!-- GUIDE MARGE -->
+<div class="tab-content" id="tab-marge-guide">
+  <div class="card">
+    <div class="card-t">Comprendre la marge en intérim BTP — Guide du commercial</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Exemple basé sur un Plaquiste N3 à 15,50€/h TB, taux client 34€/h, 35h/semaine</div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">1</div>
+      <div class="pedag-t">Les 3 acteurs et les flux</div>
+      <div class="pedag-body">
+        <strong>L'intérimaire</strong> reçoit son salaire net<br>
+        <strong>L'agence</strong> facture le client, paie l'intérimaire + charges + marge<br>
+        <strong>Le client</strong> paie un taux horaire global (TC = Taux Client)
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">2</div>
+      <div class="pedag-t">Le Taux Brut (TB)</div>
+      <div class="pedag-body">
+        Salaire brut horaire négocié avec l'intérimaire. Lié à la qualification et au niveau (grille de salaires minima BTP).<br><br>
+        <span style="font-family:var(--mono);background:var(--bg);padding:4px 8px;border-radius:4px;font-weight:700;">Exemple : Plaquiste N3 = 15,50€/h TB</span><br><br>
+        Ne jamais descendre en dessous des minima conventionnels BTP.
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">3</div>
+      <div class="pedag-t">Le coût réel de l'intérimaire</div>
+      <div class="pedag-body">
+        <div class="calc-row"><span class="calc-lbl">Taux Brut</span><span class="calc-val">15,50€/h</span></div>
+        <div class="calc-row"><span class="calc-lbl"><span class="calc-op">+</span> Charges patronales (43%)</span><span class="calc-val">+6,67€/h</span></div>
+        <div class="calc-row"><span class="calc-lbl"><span class="calc-op">+</span> IFM 10% du TB</span><span class="calc-val">+1,55€/h</span></div>
+        <div class="calc-row"><span class="calc-lbl"><span class="calc-op">+</span> ICP 10% de (TB+IFM)</span><span class="calc-val">+1,71€/h</span></div>
+        <div class="calc-row" style="border-top:2px solid var(--accent);margin-top:4px;"><span class="calc-lbl" style="font-weight:700;">= Coût horaire de base</span><span class="calc-val" style="color:var(--red);font-size:14px;">25,43€/h</span></div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:8px;">+ Panier repas si applicable (plafonné 10,10€/j) + ITR selon zone (Z1→Z7)</div>
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">4</div>
+      <div class="pedag-t">Le Coefficient de facturation</div>
+      <div class="pedag-body">
+        <strong>Coefficient = TC ÷ TB</strong><br><br>
+        <div class="calc-row"><span class="calc-lbl">Exemple : 34€ ÷ 15,50€</span><span class="calc-val">= ×2,19</span></div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="zone-pill zp-bad">&lt;2,05 = PERTE</span>
+          <span class="zone-pill zp-warn">2,05→2,15 = Limite</span>
+          <span class="zone-pill" style="background:#EFF6FF;color:#1d4ed8;">2,15→2,30 = Correct</span>
+          <span class="zone-pill zp-ok">&gt;2,30 = Excellent</span>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted2);">
+          Pourquoi 2,05 minimum ? Parce que les charges + IFM + ICP représentent ~2,05× le TB minimum légal. En dessous = tu perds de l'argent sur chaque heure.
+        </div>
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">5</div>
+      <div class="pedag-t">La Marge Brute</div>
+      <div class="pedag-body">
+        <div class="calc-row"><span class="calc-lbl">TC facturé</span><span class="calc-val">34,00€/h</span></div>
+        <div class="calc-row"><span class="calc-lbl"><span class="calc-op">-</span> Coût réel</span><span class="calc-val">-25,43€/h</span></div>
+        <div class="calc-row" style="border-top:2px solid var(--green);margin-top:4px;"><span class="calc-lbl" style="font-weight:700;">= Marge brute</span><span class="calc-val" style="color:var(--green2);font-size:14px;">8,57€/h (25,2%)</span></div>
+        <div class="calc-row" style="margin-top:6px;"><span class="calc-lbl">Marge mensuelle (35h × 4,33 sem)</span><span class="calc-val" style="color:var(--green2);">~1 299€/mois/ETP</span></div>
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">6</div>
+      <div class="pedag-t">Du CA au RBE — Ce qui reste vraiment</div>
+      <div class="pedag-body">
+        <div class="calc-row"><span class="calc-lbl">CA mensuel (34€ × 151,67h)</span><span class="calc-val">5 157€</span></div>
+        <div class="calc-row"><span class="calc-lbl"><span class="calc-op">-</span> Coût masse salariale</span><span class="calc-val">-3 858€</span></div>
+        <div class="calc-row"><span class="calc-lbl">= Marge brute</span><span class="calc-val" style="color:var(--green2);">1 299€</span></div>
+        <div class="calc-row" style="margin-top:6px;"><span class="calc-lbl">Frais fixes agence (exemple)</span><span class="calc-val">12 000€</span></div>
+        <div class="calc-row" style="border-top:2px solid var(--accent);margin-top:4px;background:#FFF4EE;"><span class="calc-lbl" style="font-weight:700;">Seuil rentabilité</span><span class="calc-val" style="color:var(--accent);font-size:14px;">12 000 ÷ 1 299 = 9,2 ETP</span></div>
+        <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:6px;font-size:12px;font-weight:600;color:var(--accent);">
+          "Il te faut 10 intérimaires placés pour couvrir tes frais fixes — le 11e commence à te rapporter"
+        </div>
+      </div>
+    </div>
+
+    <div class="pedag-step">
+      <div class="pedag-num">✓</div>
+      <div class="pedag-t">Glossaire des termes clés</div>
+      <div class="pedag-body">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="background:var(--bg)"><th style="padding:5px;text-align:left;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--muted);">TERME</th><th style="padding:5px;text-align:left;font-size:9px;font-weight:700;color:var(--muted);">DÉFINITION</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">TC</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Taux Client — ce que paie le client par heure</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">TB</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Taux Brut — salaire brut horaire de l'intérimaire</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">IFM</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Indemnité de Fin de Mission — 10% du TB</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">ICP</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Indemnité Compensatrice de Congés Payés — 10% de (TB+IFM)</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">Coefficient</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">TC ÷ TB — plancher légal BTP : ×2,05</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">Marge brute</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">TC - coût réel (charges + IFM + ICP)</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">ETP</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Équivalent Temps Plein — 1 intérimaire à temps complet</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">RBE</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Résultat Brut d'Exploitation = Marge brute - Frais fixes</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;border-bottom:1px solid var(--border);">ITR</td><td style="padding:6px 5px;border-bottom:1px solid var(--border);">Indemnité de Trajet — selon zone géographique, barème ACOSS</td></tr>
+            <tr><td style="padding:6px 5px;font-family:var(--mono);font-weight:700;">DSO</td><td style="padding:6px 5px;">Days Sales Outstanding — délai moyen de paiement client</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTEURS -->
+<div class="tab-content" id="tab-acteurs">
+  <div class="card">
+    <div class="card-t">Acteurs et ressources de l'intérim BTP</div>
+    <div id="acteurs-list"></div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+function refTab(tab,btn){
+  document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('on'); });
+  document.querySelectorAll('.btn-tab').forEach(function(el){ el.classList.remove('on'); });
+  document.getElementById('tab-'+tab).classList.add('on');
+  btn.classList.add('on');
+  if(tab==='objections') objRender('');
+  else if(tab==='rome') romeRender('');
+  else if(tab==='acteurs') acteursRender();
+}
+
+// ── OBJECTIONS ────────────────────────────────────────────────────────────────
+var OBJECTIONS = [
+  {q:"Vos prix sont trop élevés",
+   r:"C'est une réaction normale au premier regard. Mais votre coût réel c'est TC × heures travaillées, sans les charges patronales, sans la gestion RH, sans le risque prud'homal. Quand vous embauchez en CDI vous payez aussi les périodes creuses. Avec nous vous ne payez que les heures productives. Sur 12 mois la différence est souvent en votre faveur."},
+  {q:"J'ai déjà un prestataire intérim",
+   r:"Parfait — ça veut dire que vous avez l'habitude de travailler avec de l'intérim. Ma question c'est : est-ce qu'il répond toujours présent quand vous avez un besoin urgent ? On peut travailler à côté de votre prestataire actuel, sans exclusivité, et vous montrer la différence sur un besoin concret."},
+  {q:"Je préfère embaucher en CDI",
+   r:"C'est une bonne démarche pour fidéliser des profils. En attendant de trouver le bon candidat CDI, l'intérim vous permet de maintenir votre activité. Et parfois l'intérimaire qu'on vous propose devient votre meilleur CDI — vous pouvez l'embaucher directement après la mission."},
+  {q:"Je n'ai pas de besoin pour l'instant",
+   r:"Je comprends. Mon objectif ce n'est pas de vous vendre quelque chose aujourd'hui. C'est que vous ayez mon contact quand ça se présente. Les besoins BTP arrivent souvent vite — un chantier qui avance plus vite que prévu, un absent au dernier moment. Est-ce que je peux vous laisser mes coordonnées ?"},
+  {q:"J'ai eu de mauvaises expériences avec l'intérim",
+   r:"Je ne vais pas vous dire que tous les prestataires se valent — ce n'est pas vrai. Ma spécialité c'est le second œuvre qualifié en IDF. Je ne vous enverrai jamais un profil que je n'ai pas validé moi-même. Si ça ne convient pas dans les 24 premières heures, on trouve une solution immédiatement. C'est ça ma différence."},
+  {q:"Vos profils ne sont pas assez qualifiés",
+   r:"Quel niveau vous cherchez exactement ? N3 ? N4 avec habilitation spécifique ? Ma base compte des profils qualifiés que je source activement — pas uniquement des candidats qui se présentent. Si vous me donnez votre cahier des charges précis, je vous montre ce que j'ai sous la main."},
+  {q:"Je passe directement par France Travail, c'est gratuit",
+   r:"France Travail est un excellent outil pour la visibilité. Mais la sélection, la validation des compétences, la vérification des habilitations, la gestion administrative, la visite médicale — tout ça c'est votre charge si vous gérez directement. Nous c'est notre métier. Votre temps de dirigeant ou de conducteur de travaux est plus précieux que ça."},
+  {q:"Le coefficient c'est trop élevé, je veux du 2",
+   r:"À coeff 2,00 je ne couvre pas mes coûts — charges patronales, IFM, ICP, frais de fonctionnement. Je ne peux pas vous proposer un service de qualité à perte. Ce que je peux faire c'est optimiser le TB pour trouver un taux plancher qui vous convienne. Quel est votre budget TC maximum ?"},
+  {q:"Je travaille avec une agence locale que je connais bien",
+   r:"La confiance avec votre prestataire c'est précieux, je le comprends. Mon positionnement c'est la réactivité et la spécialisation second œuvre. Si votre agence actuelle ne trouve pas un profil, je peux être votre back-up. Pas de contrat d'exclusivité, juste un test sur un besoin concret."},
+  {q:"Vous m'avez déjà envoyé quelqu'un qui n'est pas revenu le deuxième jour",
+   r:"C'est le pire scénario et je ne vais pas le minimiser. Ce qui s'est passé ? [Écouter] Voilà ce que j'aurais fait différemment : [adapter selon le contexte]. Je ne peux pas effacer ce qui s'est passé mais je peux vous montrer comment je travaille aujourd'hui. Un essai sur un besoin non urgent ?"},
+];
+
+function objSearch(q){
+  var filtered = q ? OBJECTIONS.filter(function(o){ return o.q.toLowerCase().indexOf(q.toLowerCase())>=0 || o.r.toLowerCase().indexOf(q.toLowerCase())>=0; }) : OBJECTIONS;
+  var el=document.getElementById('obj-list');
+  el.innerHTML=filtered.map(function(o,i){
+    return '<div class="obj-card" id="obj-'+i+'" onclick="objToggle('+i+')">'
+      +'<div class="obj-q">🗣 '+o.q+'</div>'
+      +'<div class="obj-r">'+o.r+'</div>'
+      +'</div>';
+  }).join('');
+}
+function objRender(q){ objSearch(q); }
+function objToggle(i){ var el=document.getElementById('obj-'+i); if(el) el.classList.toggle('open'); }
+
+// ── ROME ─────────────────────────────────────────────────────────────────────
+var ROME = [
+  {code:'F1614',f:'Second œuvre',t:'Monteur en isolation thermique, acoustique et étanchéité',items:['Lecture de plans','Pose de laine de verre','Isolation thermique par l\'intérieur (ITI)','Isolation thermique par l\'extérieur (ITE)','Matériaux: laine minérale, PIR, PUR']},
+  {code:'F1611',f:'Second œuvre',t:'Peintre en bâtiment',items:['Préparation des supports','Application peintures, vernis, enduits','Pose de papiers peints','Ravalement de façades','Travaux en hauteur']},
+  {code:'F1612',f:'Second œuvre',t:'Plaquiste',items:['Cloisons en plaques de plâtre','Faux-plafonds','Doublages','Traçage et calepinage','Lecture de plans d\'exécution']},
+  {code:'F1702',f:'Second œuvre',t:'Carreleur / Mosaïste',items:['Carrelage sol et mur','Pose de faïences','Chapes anhydrite','Pose de parquet','Ragréage']},
+  {code:'F1611',f:'Second œuvre',t:'Façadier / Enduiseur',items:['Enduits projetés','Ravalement ITE','Isolation thermique par l\'extérieur','Bardages']},
+  {code:'F1603',f:'Second œuvre',t:'Menuisier poseur',items:['Pose de fenêtres PVC/ALU/Bois','Pose de portes','Agencement intérieur','Lecture de plans','Calfeutrement']},
+  {code:'F1604',f:'Gros œuvre',t:'Maçon / Coffreur-bancheur',items:['Maçonnerie traditionnelle','Coffrage bois et métal','Béton armé','Ferraillage','Décoffrage']},
+  {code:'F1702',f:'Gros œuvre',t:'Charpentier bois',items:['Charpente traditionnelle','Charpente industrielle','Ossature bois','Lecture de plans','Levage et pose']},
+  {code:'F1605',f:'CVC/Plomberie',t:'Plombier / Chauffagiste',items:['Plomberie sanitaire','Installation chauffage','Pose de chaudières gaz','VMC','Régulation']},
+  {code:'F1606',f:'CVC/Plomberie',t:'Technicien CVC',items:['Climatisation / Réversible','Pompes à chaleur','Traitement d\'air','GTB/GTC','Maintenance préventive']},
+  {code:'F1606',f:'Électricité',t:'Électricien CFO/CFA',items:['Câblage courants forts','Tableau électrique','Câblage courants faibles','Domotique','Éclairage']},
+  {code:'F1201',f:'Encadrement',t:'Chef d\'équipe BTP',items:['Encadrement d\'une équipe 3-8 personnes','Lecture de plans','Organisation du chantier','Contrôle de qualité','Relations avec le client']},
+];
+
+function romeSearch(q){
+  var filtered = q ? ROME.filter(function(r){ return r.t.toLowerCase().indexOf(q.toLowerCase())>=0||r.code.toLowerCase().indexOf(q.toLowerCase())>=0||r.f.toLowerCase().indexOf(q.toLowerCase())>=0; }) : ROME;
+  var el=document.getElementById('rome-list'); if(!el) return;
+  el.innerHTML=filtered.map(function(r){
+    return '<div class="rome-card">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+      +'<div class="rome-t">'+r.t+'</div>'
+      +'<span class="rome-code">'+r.code+'</span>'
+      +'<span style="font-size:10px;color:var(--muted2);background:var(--bg);padding:2px 6px;border-radius:3px;">'+r.f+'</span>'
+      +'</div>'
+      +'<div class="rome-items">'+r.items.map(function(i){ return '<span class="rome-item">'+i+'</span>'; }).join('')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function romeRender(q){ romeSearch(q); }
+
+// ── ACTEURS ───────────────────────────────────────────────────────────────────
+var ACTEURS = [
+  {t:'PRISM\'EMPLOI',sub:'Syndicat professionnel des ETT',desc:'Publie les statistiques trimestrielles de l\'intérim, les guides juridiques, les conventions collectives. Votre syndicat patronal.',url:'https://www.prismemploi.eu'},
+  {t:'FASTT',sub:'Fonds d\'Action Sociale du Travail Temporaire',desc:'Droits des intérimaires : aides logement, micro-crédit, garde d\'enfants, complémentaire santé. Argument commercial : vos intérimaires ont accès à des services que les CDI n\'ont pas toujours.',url:'https://www.fastt.org'},
+  {t:'CONSTRUCTYS',sub:'OPCO de la construction',desc:'Finance les formations des salariés des ETT travaillant pour le BTP. AFPR, POE, alternance, CPF. Votre interlocuteur pour toute demande de financement formation.',url:'https://www.constructys.fr'},
+  {t:'OPPBTP',sub:'Organisme Professionnel de Prévention du BTP',desc:'Ressources sécurité BTP, guides de prévention, formations, plans de prévention types. Référence pour vos documents sécurité.',url:'https://www.oppbtp.fr'},
+  {t:'Pro BTP',sub:'Institution de prévoyance et retraite BTP',desc:'Prévoyance et retraite complémentaire des salariés BTP. Vos intérimaires y sont affiliés.',url:'https://www.probtp.com'},
+  {t:'CAPEB',sub:'Confédération Artisanale Petites Entreprises du Bâtiment',desc:'Réseau artisanal du bâtiment. Source de prospects TPE/PME. Adhérents potentiels dans votre zone.',url:'https://www.capeb.fr'},
+  {t:'FFB',sub:'Fédération Française du Bâtiment',desc:'Fédère les entreprises du bâtiment. Répertoire des adhérents, publications sectorielles, événements régionaux.',url:'https://www.ffbatiment.fr'},
+  {t:'France Travail',sub:'Ex Pôle Emploi — Service public de l\'emploi',desc:'CVthèque, offres d\'emploi, dispositifs AFPR et POE, Job Dating BTP. Partenaire clé pour le sourcing de candidats et les aides à l\'embauche.',url:'https://www.francetravail.fr'},
+  {t:'Cap Emploi',sub:'Réseau CHEOPS — RQTH et handicap',desc:'Accompagnement des travailleurs handicapés (RQTH) vers l\'emploi. Source de candidats RQTH. Argument DOETH pour vos clients.',url:'https://www.capemploi.net'},
+  {t:'Agefiph',sub:'Association de gestion du fonds pour l\'insertion des personnes handicapées',desc:'Aides à l\'embauche de salariés RQTH : aide à l\'adaptation du poste, aide à l\'insertion, subventions. Arguments commerciaux pour vos clients.',url:'https://www.agefiph.fr'},
+];
+
+function acteursRender(){
+  var el=document.getElementById('acteurs-list'); if(!el) return;
+  el.innerHTML=ACTEURS.map(function(a){
+    return '<div style="border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+      +'<div style="font-size:13px;font-weight:600;">'+a.t+'</div>'
+      +'<div style="font-size:10px;color:var(--muted2);background:var(--bg);padding:2px 8px;border-radius:10px;">'+a.sub+'</div>'
+      +'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">'+a.desc+'</div>'
+      +'<a href="'+a.url+'" target="_blank" style="font-size:10px;color:var(--accent);font-family:var(--mono);">'+a.url+' →</a>'
+      +'</div>';
+  }).join('');
+}
+
+objRender('');
+romeRender('');
+</script>
+</body>
+</html>

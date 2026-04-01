@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — Missions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--border2:#D8DBE5;
+  --text:#1e293b;--text2:#334155;--muted:#94a3b8;--muted2:#64748b;
+  --accent:#f97316;--green:#22c55e;--green2:#16a34a;--blue:#3b82f6;
+  --amber:#f59e0b;--red:#ef4444;--purple:#a855f7;--cyan:#06b6d4;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",monospace;
+  --r:8px;--r-lg:12px;--top-h:54px;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased;}
+button,input,select,textarea{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;z-index:100;}
+.tb-back{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;transition:all .12s;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;}
+.tb-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.btn{padding:7px 14px;border-radius:6px;cursor:pointer;border:none;font-size:12px;font-weight:500;white-space:nowrap;transition:opacity .12s;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-ghost{background:var(--white);border:1px solid var(--border2);color:var(--muted2);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);opacity:1;}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-red{background:#FEE2E2;color:#dc2626;border:1px solid #fca5a5;}
+
+/* KPI strip */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--border);}
+.kpi-c{background:var(--bg);border-radius:var(--r);padding:10px 12px;}
+.kpi-n{font-size:20px;font-weight:600;font-family:var(--mono);}
+.kpi-l{font-size:10px;color:var(--muted);margin-top:2px;}
+.kpi-bar{height:3px;background:#E2E8F0;border-radius:2px;margin-top:6px;overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .4s;}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--white);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.srch{padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg);color:var(--text);outline:none;width:200px;}
+.srch:focus{border-color:var(--accent);}
+.chip{padding:4px 10px;font-size:10px;font-weight:500;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:transparent;color:var(--muted2);font-family:var(--mono);transition:all .12s;}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.chip:hover:not(.on){border-color:var(--muted);}
+
+/* Tableau missions */
+.main{position:fixed;top:var(--top-h);left:0;right:0;bottom:0;overflow-y:auto;}
+.mis-table{width:100%;border-collapse:collapse;}
+.mis-table th{padding:7px 14px;text-align:left;font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;font-family:var(--mono);background:var(--white);border-bottom:2px solid var(--border);position:sticky;top:0;}
+.mis-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:12px;}
+.mis-row{cursor:pointer;transition:background .1s;}
+.mis-row:hover{background:#FAFBFF;}
+.mis-row.sel{background:#FFF4EE;}
+.mc-nom{font-size:13px;font-weight:500;color:var(--text);}
+.mc-sub{font-size:10px;color:var(--muted);}
+.sb{display:inline-block;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;font-family:var(--mono);}
+.sb-green{background:var(--green);}
+.sb-amber{background:var(--amber);}
+.sb-red{background:var(--red);}
+.sb-blue{background:var(--blue);}
+.sb-gray{background:var(--muted);}
+.j-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:var(--mono);}
+.jb-ok{background:#DCFCE7;color:#15803d;}
+.jb-alert{background:#FEF3C7;color:#92400e;}
+.jb-danger{background:#FEE2E2;color:#dc2626;}
+
+/* Drawer */
+#mis-drawer{
+  position:fixed;top:var(--top-h);right:0;bottom:0;
+  width:520px;max-width:95vw;
+  background:var(--white);border-left:1px solid var(--border);
+  box-shadow:-4px 0 30px rgba(0,0,0,.1);
+  z-index:201;overflow-y:auto;
+  transform:translateX(110%);transition:transform .3s cubic-bezier(.22,1,.36,1);
+}
+#mis-drawer.open{transform:translateX(0);}
+#mis-bd{position:fixed;inset:0;top:var(--top-h);background:rgba(15,23,42,.2);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;}
+#mis-bd.open{opacity:1;pointer-events:all;}
+.dr-hd{padding:14px 18px;border-bottom:1px solid var(--border);}
+.dr-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
+.dr-close:hover{color:var(--text);}
+.dr-nom{font-size:17px;font-weight:600;}
+.dr-sub{font-size:12px;color:var(--muted2);margin-top:2px;}
+.dr-acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.dr-body{padding:16px 18px;}
+.dr-section{margin-bottom:16px;}
+.dr-st{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dr-f{display:flex;flex-direction:column;gap:2px;}
+.dr-f.full{grid-column:1/-1;}
+.dr-f label{font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;}
+.dr-f input,.dr-f select,.dr-f textarea{padding:6px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;}
+.dr-f input:focus,.dr-f select:focus{border-color:var(--accent);outline:none;}
+.dr-f textarea{resize:vertical;min-height:55px;}
+
+/* Modal */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:center;justify-content:center;padding:20px;}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--white);border-radius:var(--r-lg);padding:22px;width:min(620px,96vw);max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+.modal-box h3{font-size:15px;font-weight:600;margin-bottom:16px;}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mf{display:flex;flex-direction:column;gap:3px;}
+.mf.full{grid-column:1/-1;}
+.mf label{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.mf input,.mf select,.mf textarea{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;}
+.mf input:focus,.mf select:focus{border-color:var(--accent);outline:none;}
+.mf textarea{resize:vertical;min-height:55px;}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+
+@media(max-width:768px){
+  .kpi-strip{grid-template-columns:1fr 1fr;}
+  #mis-drawer{width:100vw;max-width:100vw;}
+  .mis-table th:nth-child(4),.mis-table th:nth-child(5),.mis-table td:nth-child(4),.mis-table td:nth-child(5){display:none;}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Missions</div>
+  <div class="tb-right">
+    <span id="tb-cnt" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
+    <button class="btn btn-ghost btn-sm" onclick="misExport()">Export CSV</button>
+    <button class="btn btn-primary btn-sm" onclick="misOpenModal()">+ Mission</button>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div class="kpi-strip" id="kpi-strip"></div>
+  <div class="toolbar">
+    <input class="srch" id="mis-search" type="text" placeholder="Intérimaire, client, qualif…" oninput="misRender()"/>
+    <div style="display:flex;gap:4px;">
+      <button class="chip on" data-v="" onclick="misSetChip(this)">TOUS</button>
+      <button class="chip" data-v="active" onclick="misSetChip(this)">ACTIVES</button>
+      <button class="chip" data-v="pending" onclick="misSetChip(this)">À CONFIRMER</button>
+      <button class="chip" data-v="alert" onclick="misSetChip(this)">ALERTES J-7</button>
+      <button class="chip" data-v="closed" onclick="misSetChip(this)">CLÔTURÉES</button>
+    </div>
+  </div>
+  <table class="mis-table" id="mis-table">
+    <thead>
+      <tr>
+        <th onclick="misSort('interimaire')" style="cursor:pointer">Intérimaire ↕</th>
+        <th onclick="misSort('client')" style="cursor:pointer">Client ↕</th>
+        <th>Qualification</th>
+        <th onclick="misSort('debut')" style="cursor:pointer">Début ↕</th>
+        <th onclick="misSort('fin')" style="cursor:pointer">Fin ↕</th>
+        <th>Statut</th>
+        <th>TXH</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="mis-tbody"></tbody>
+  </table>
+</div>
+
+<div id="mis-bd" onclick="misCloseDrawer()"></div>
+<div id="mis-drawer"></div>
+
+<!-- Modal mission -->
+<div class="modal-ov" id="modal-mis">
+  <div class="modal-box">
+    <h3 id="modal-mis-title">Nouvelle mission</h3>
+    <div class="m-grid">
+      <div class="mf"><label>Intérimaire *</label>
+        <input type="text" id="mf-int" list="dl-cands"/>
+        <datalist id="dl-cands"></datalist></div>
+      <div class="mf"><label>Client *</label>
+        <input type="text" id="mf-client" list="dl-clients"/>
+        <datalist id="dl-clients"></datalist></div>
+      <div class="mf"><label>Qualification</label><input type="text" id="mf-qualif"/></div>
+      <div class="mf"><label>Statut</label>
+        <select id="mf-statut">
+          <option value="pending">À confirmer</option>
+          <option value="active">Active</option>
+          <option value="closed">Clôturée</option>
+        </select></div>
+      <div class="mf"><label>Date début *</label><input type="date" id="mf-debut"/></div>
+      <div class="mf"><label>Date fin prévue *</label><input type="date" id="mf-fin"/></div>
+      <div class="mf"><label>Taux client €/h</label><input type="number" id="mf-txh" step="0.5"/></div>
+      <div class="mf"><label>Coefficient</label><input type="number" id="mf-coeff" step="0.01" placeholder="ex: 2.15"/></div>
+      <div class="mf full"><label>Adresse chantier</label><input type="text" id="mf-chantier"/></div>
+      <div class="mf"><label>Contact chantier</label><input type="text" id="mf-contact"/></div>
+      <div class="mf"><label>Tél contact</label><input type="tel" id="mf-contact-tel"/></div>
+      <div class="mf"><label>Horaires</label><input type="text" id="mf-horaires" placeholder="ex: 7h30-16h30"/></div>
+      <div class="mf"><label>Motif de recours</label>
+        <select id="mf-motif">
+          <option>Accroissement temporaire</option><option>Remplacement</option>
+          <option>Saisonnier</option><option>Commande exceptionnelle</option>
+        </select></div>
+      <div class="mf"><label>Confirmation présence</label>
+        <select id="mf-presence">
+          <option value="">Non renseigné</option><option value="oui">Confirmé</option>
+          <option value="absent">Absent</option><option value="retard">Retard</option>
+        </select></div>
+      <div class="mf full"><label>Notes</label><textarea id="mf-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-sm" onclick="misCloseModal()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="misSave()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════════════════════
+var missions = [];
+var candsDB  = [];
+var crmDB    = [];
+var editId   = null;
+var currentMisId = null;
+var misFilter = '';
+var misSortField = 'fin';
+var misSortAsc = true;
+
+function loadData(){
+  try{ missions = JSON.parse(localStorage.getItem('jtp_missions')||'[]'); }catch(e){ missions=[]; }
+  try{ candsDB  = JSON.parse(localStorage.getItem('cands_btp_v2')||'[]'); }catch(e){ candsDB=[]; }
+  try{ crmDB    = JSON.parse(localStorage.getItem('crm_btp_db')||'[]'); }catch(e){ crmDB=[]; }
+}
+function misSaveData(){
+  localStorage.setItem('jtp_missions', JSON.stringify(missions));
+}
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmt(d){ if(!d) return '—'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid(){ return 'm_'+Date.now().toString(36)+Math.random().toString(36).slice(2,4); }
+function daysLeft(d){ if(!d) return null; return Math.round((new Date(d)-new Date(today()))/86400000); }
+function nrm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+function misStatut(m){
+  if(m.statut==='closed') return 'closed';
+  var dl = daysLeft(m.fin);
+  if(dl===null) return 'active';
+  if(dl<0) return 'closed';
+  if(!m.presence||m.presence==='') return 'pending';
+  if(dl<=7) return 'alert';
+  return 'active';
+}
+
+// ── KPI STRIP ────────────────────────────────────────────────────────────────
+function misRenderKPI(){
+  var actives=0, pending=0, alerts=0, ca=0;
+  missions.forEach(function(m){
+    var s=misStatut(m);
+    if(s==='active'||s==='alert'){ actives++; if(s==='alert') alerts++; }
+    else if(s==='pending') pending++;
+    if(m.txh&&m.debut&&m.fin){
+      var days=Math.round((new Date(m.fin)-new Date(m.debut))/86400000);
+      ca+=parseFloat(m.txh)*Math.max(0,days)*7;
+    }
+  });
+
+  var caK = ca>0?Math.round(ca/100)/10+'k€':'—';
+  var kpis=[
+    {n:actives,l:'Missions actives',c:'var(--green)',pct:Math.min(100,actives*10)},
+    {n:pending,l:'À confirmer',c:'var(--amber)',pct:Math.min(100,pending*20)},
+    {n:alerts,l:'Fins imminentes J-7',c:'var(--red)',pct:Math.min(100,alerts*25)},
+    {n:caK,l:'CA estimé missions',c:'var(--accent)',pct:70},
+  ];
+  var el=document.getElementById('kpi-strip'); if(!el) return;
+  el.innerHTML=kpis.map(function(k){
+    return '<div class="kpi-c"><div class="kpi-n" style="color:'+k.c+'">'+k.n+'</div>'
+      +'<div class="kpi-l">'+k.l+'</div>'
+      +'<div class="kpi-bar"><div class="kpi-bar-fill" style="width:'+k.pct+'%;background:'+k.c+'"></div></div>'
+      +'</div>';
+  }).join('');
+
+  var cnt=document.getElementById('tb-cnt');
+  if(cnt) cnt.textContent=missions.length+' missions';
+}
+
+// ── TABLEAU ───────────────────────────────────────────────────────────────────
+function misSetChip(btn){
+  document.querySelectorAll('.chip').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  misFilter = btn.dataset.v||'';
+  misRender();
+}
+
+function misSort(f){
+  if(misSortField===f) misSortAsc=!misSortAsc;
+  else{ misSortField=f; misSortAsc=true; }
+  misRender();
+}
+
+function misRender(){
+  var q=((document.getElementById('mis-search')||{}).value||'').toLowerCase().trim();
+  var pool=missions.filter(function(m){
+    var s=misStatut(m);
+    if(misFilter && s!==misFilter) return false;
+    if(q){
+      var hay=[m.interimaire,m.client,m.qualif,m.chantier].filter(Boolean).join(' ').toLowerCase();
+      return q.split(' ').filter(Boolean).every(function(w){ return hay.indexOf(w)>=0; });
+    }
+    return true;
+  });
+
+  pool.sort(function(a,b){
+    var va=a[misSortField]||'', vb=b[misSortField]||'';
+    return misSortAsc?va.localeCompare(vb):vb.localeCompare(va);
+  });
+
+  var tbody=document.getElementById('mis-tbody'); if(!tbody) return;
+  if(!pool.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:12px">Aucune mission correspondante</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML=pool.map(function(m){
+    var s=misStatut(m);
+    var sbCls,sbLbl;
+    if(s==='active'){sbCls='sb-green';sbLbl='Active';}
+    else if(s==='pending'){sbCls='sb-amber';sbLbl='À confirmer';}
+    else if(s==='alert'){sbCls='sb-red';sbLbl='Fin J-'+(daysLeft(m.fin)||0);}
+    else{sbCls='sb-gray';sbLbl='Clôturée';}
+
+    var presIcon='';
+    if(m.presence==='oui') presIcon=' <span class="j-badge jb-ok">✓</span>';
+    else if(m.presence==='absent') presIcon=' <span class="j-badge jb-danger">ABS</span>';
+    else if(m.presence==='retard') presIcon=' <span class="j-badge jb-alert">RET</span>';
+
+    var coeff=m.coeff?'<span style="font-size:9px;font-family:var(--mono);color:var(--muted)"> ×'+m.coeff+'</span>':'';
+    return '<tr class="mis-row'+(currentMisId===m.id?' sel':'')+'" onclick="misOpenDrawer(\''+m.id+'\')"><td>'
+      +'<div class="mc-nom">'+esc(m.interimaire||'—')+presIcon+'</div>'
+      +'</td><td>'
+      +'<div class="mc-nom">'+esc(m.client||'—')+'</div>'
+      +(m.chantier?'<div class="mc-sub">'+esc(m.chantier.slice(0,30))+'</div>':'')
+      +'</td><td style="font-size:12px;color:var(--muted2)">'+esc(m.qualif||'—')+'</td>'
+      +'<td style="font-family:var(--mono);font-size:11px">'+fmt(m.debut)+'</td>'
+      +'<td style="font-family:var(--mono);font-size:11px;'+(s==='alert'?'color:var(--red);font-weight:600':'')+'">'+fmt(m.fin)+'</td>'
+      +'<td><span class="sb '+sbCls+'">'+sbLbl+'</span></td>'
+      +'<td style="font-family:var(--mono);font-size:12px">'+(m.txh?m.txh+'€'+coeff:'—')+'</td>'
+      +'<td style="display:flex;gap:4px;">'
+      +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();misOpenModal(\''+m.id+'\')">✏</button>'
+      +'<button class="btn btn-red btn-sm" onclick="event.stopPropagation();misDel(\''+m.id+'\')">×</button>'
+      +'</td></tr>';
+  }).join('');
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+function misOpenDrawer(id){
+  currentMisId=id; misRender();
+  var dr=document.getElementById('mis-drawer'); if(!dr) return;
+  var m=missions.find(function(x){ return x.id===id; }); if(!m) return;
+  var s=misStatut(m);
+  var sbCls,sbLbl;
+  if(s==='active'){sbCls='sb-green';sbLbl='Active';}
+  else if(s==='pending'){sbCls='sb-amber';sbLbl='À confirmer';}
+  else if(s==='alert'){sbCls='sb-red';sbLbl='Fin J-'+(daysLeft(m.fin)||0);}
+  else{sbCls='sb-gray';sbLbl='Clôturée';}
+
+  var fi=function(lbl,val){ return '<div class="dr-f"><label>'+lbl+'</label><div style="font-size:12px;padding:4px 0">'+esc(val||'—')+'</div></div>'; };
+
+  dr.innerHTML='<div class="dr-hd">'
+    +'<button class="dr-close" onclick="misCloseDrawer()">×</button>'
+    +'<div class="dr-nom">'+esc(m.interimaire||'—')+'</div>'
+    +'<div class="dr-sub">'+esc(m.client||'—')+(m.qualif?' · '+esc(m.qualif):'')+'</div>'
+    +'<div style="margin-top:8px"><span class="sb '+sbCls+'">'+sbLbl+'</span></div>'
+    +'<div class="dr-acts">'
+    +'<button class="btn btn-ghost btn-sm" onclick="misOpenModal(\''+m.id+'\')">✏ Modifier</button>'
+    +(s!=='closed'?'<button class="btn btn-primary btn-sm" onclick="misCloture(\''+m.id+'\')">Clôturer</button>':'')
+    +'<button class="btn btn-red btn-sm" onclick="misDel(\''+m.id+'\')">Supprimer</button>'
+    +'</div></div>'
+    +'<div class="dr-body">'
+    +'<div class="dr-section"><div class="dr-st">Dates et horaires</div>'
+    +'<div class="dr-grid">'
+    +fi('Début',fmt(m.debut))+fi('Fin prévue',fmt(m.fin))
+    +fi('Horaires',m.horaires)+fi('Motif',m.motif)
+    +'</div></div>'
+    +'<div class="dr-section"><div class="dr-st">Financier</div>'
+    +'<div class="dr-grid">'
+    +fi('Taux client',m.txh?m.txh+'€/h':'—')
+    +fi('Coefficient',m.coeff?'×'+m.coeff:'—')
+    +fi('CA estimé',m.txh&&m.debut&&m.fin?Math.round(parseFloat(m.txh)*Math.max(0,Math.round((new Date(m.fin)-new Date(m.debut))/86400000))*7)+'€':'—')
+    +'</div></div>'
+    +'<div class="dr-section"><div class="dr-st">Chantier</div>'
+    +'<div class="dr-grid">'
+    +fi('Adresse',m.chantier)+fi('Contact',m.contact)
+    +fi('Tél contact',m.contact_tel)
+    +'</div></div>'
+    +'<div class="dr-section"><div class="dr-st">Présence et suivi</div>'
+    +'<div class="dr-grid">'
+    +'<div class="dr-f"><label>Confirmation présence</label>'
+    +'<select style="padding:5px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--bg);" onchange="misSetField(\''+m.id+'\',\'presence\',this.value)">'
+    +['','oui','absent','retard'].map(function(v){ return '<option value="'+v+'"'+(m.presence===v?' selected':'')+'>'+({'':"Non renseigné",oui:"Confirmé",absent:"Absent",retard:"Retard"}[v]||v)+'</option>'; }).join('')
+    +'</select></div>'
+    +'</div></div>'
+    +(m.notes?'<div class="dr-section"><div class="dr-st">Notes</div><p style="font-size:12px;color:var(--text2)">'+esc(m.notes)+'</p></div>':'')
+    +'</div>';
+
+  dr.classList.add('open');
+  document.getElementById('mis-bd').classList.add('open');
+}
+
+function misCloseDrawer(){
+  currentMisId=null;
+  document.getElementById('mis-drawer').classList.remove('open');
+  document.getElementById('mis-bd').classList.remove('open');
+  misRender();
+}
+
+// ── CRUD ─────────────────────────────────────────────────────────────────────
+function misSetField(id,field,val){
+  var m=missions.find(function(x){ return x.id===id; }); if(!m) return;
+  m[field]=val; misSaveData(); misRenderKPI(); misRender();
+  if(currentMisId===id) misOpenDrawer(id);
+}
+
+function misCloture(id){
+  if(!confirm('Clôturer cette mission et libérer le candidat ?')) return;
+  var m=missions.find(function(x){ return x.id===id; }); if(!m) return;
+  m.statut='closed'; m.fin=m.fin||today(); misSaveData();
+  // Sync candidat
+  misSync(m);
+  misCloseDrawer(); misRenderKPI(); misRender();
+}
+
+function misSync(m){
+  try{
+    var cands=JSON.parse(localStorage.getItem('cands_btp_v2')||'[]');
+    var inter=nrm(m.interimaire||'');
+    cands.forEach(function(c){
+      if(nrm((c.prenom||'')+' '+(c.nom||'')).indexOf(inter)>=0 || nrm((c.nom||'')+' '+(c.prenom||'')).indexOf(inter)>=0){
+        if(m.statut==='closed'){
+          if(!c.historique) c.historique=[];
+          c.historique.push({client:m.client,date_debut:m.debut,date_fin:m.fin,tc:m.txh,archivedAt:today()});
+          c.dispo='dispo'; c.mission={};
+        }
+      }
+    });
+    localStorage.setItem('cands_btp_v2',JSON.stringify(cands));
+  }catch(e){}
+}
+
+function misDel(id){
+  if(!confirm('Supprimer cette mission ?')) return;
+  missions=missions.filter(function(m){ return m.id!==id; });
+  misSaveData(); misCloseDrawer(); misRenderKPI(); misRender();
+}
+
+function misOpenModal(id){
+  editId=id||null;
+  document.getElementById('modal-mis-title').textContent=id?'Modifier la mission':'Nouvelle mission';
+  var m=id?missions.find(function(x){ return x.id===id; }):null;
+  // Peupler datalists
+  var dlC=document.getElementById('dl-cands');
+  var dlCl=document.getElementById('dl-clients');
+  if(dlC) dlC.innerHTML=candsDB.map(function(c){ return '<option value="'+(c.prenom||'')+' '+(c.nom||'')+'">'; }).join('');
+  if(dlCl) dlCl.innerHTML=crmDB.map(function(p){ return '<option value="'+esc(p.nom||'')+'">'; }).join('');
+  var fmap={
+    'mf-int':'interimaire','mf-client':'client','mf-qualif':'qualif',
+    'mf-statut':'statut','mf-debut':'debut','mf-fin':'fin',
+    'mf-txh':'txh','mf-coeff':'coeff','mf-chantier':'chantier',
+    'mf-contact':'contact','mf-contact-tel':'contact_tel',
+    'mf-horaires':'horaires','mf-motif':'motif','mf-notes':'notes',
+    'mf-presence':'presence'
+  };
+  Object.keys(fmap).forEach(function(fid){
+    var el=document.getElementById(fid); if(!el) return;
+    el.value=m?(m[fmap[fid]]||''):'';
+  });
+  if(!m){
+    var ds=document.getElementById('mf-debut'); if(ds) ds.value=today();
+  }
+  document.getElementById('modal-mis').classList.add('open');
+}
+
+function misCloseModal(){
+  document.getElementById('modal-mis').classList.remove('open');
+}
+
+function misSave(){
+  var inter=(document.getElementById('mf-int')||{value:''}).value.trim();
+  var client=(document.getElementById('mf-client')||{value:''}).value.trim();
+  var debut=(document.getElementById('mf-debut')||{value:''}).value;
+  var fin=(document.getElementById('mf-fin')||{value:''}).value;
+  if(!inter||!client||!debut||!fin){ alert('Intérimaire, client, début et fin obligatoires'); return; }
+  var g=function(id){ return (document.getElementById(id)||{value:''}).value; };
+  var data={
+    id:editId||uid(), interimaire:inter, client:client,
+    qualif:g('mf-qualif'), statut:g('mf-statut')||'pending',
+    debut:debut, fin:fin,
+    txh:parseFloat(g('mf-txh'))||null, coeff:parseFloat(g('mf-coeff'))||null,
+    chantier:g('mf-chantier'), contact:g('mf-contact'),
+    contact_tel:g('mf-contact-tel'), horaires:g('mf-horaires'),
+    motif:g('mf-motif'), notes:g('mf-notes'), presence:g('mf-presence'),
+    createdAt:today()
+  };
+  if(editId){
+    var idx=missions.findIndex(function(m){ return m.id===editId; });
+    if(idx>=0) missions[idx]=Object.assign(missions[idx],data);
+  } else {
+    missions.push(data);
+    // Sync candidat → en mission
+    misSync(Object.assign({statut:'active'},data));
+  }
+  misSaveData(); misCloseModal(); misRenderKPI(); misRender();
+}
+
+function misExport(){
+  var rows=[['Intérimaire','Client','Qualif','Statut','Début','Fin','TXH','Coefficient','Chantier','Notes']];
+  missions.forEach(function(m){
+    rows.push([m.interimaire||'',m.client||'',m.qualif||'',misStatut(m),m.debut||'',m.fin||'',m.txh||'',m.coeff||'',m.chantier||'',m.notes||'']);
+  });
+  var csv=rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(';'); }).join('\n');
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='missions_'+today()+'.csv'; a.click();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(document.querySelector('.modal-ov.open')){ misCloseModal(); return; }
+    if(currentMisId) misCloseDrawer();
+  }
+});
+loadData(); misRenderKPI(); misRender();
+</script>
+</body>
+</html>

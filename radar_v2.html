@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — Radar Opportunités</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--text:#1e293b;--text2:#334155;--muted:#94a3b8;--muted2:#64748b;--accent:#f97316;--green:#22c55e;--green2:#16a34a;--blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",monospace;--r:8px;--r-lg:12px;--top-h:54px;--shadow:0 1px 4px rgba(0,0,0,.07);}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+button,input,select,textarea{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;z-index:100;}
+.tb-back{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;}
+.btn{padding:7px 14px;border-radius:6px;cursor:pointer;border:none;font-size:12px;font-weight:500;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-ghost{background:var(--white);border:1px solid var(--border);color:var(--muted2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-cyan{background:var(--cyan);color:#fff;}
+.btn-tab{padding:8px 16px;border-radius:6px 6px 0 0;cursor:pointer;border:1px solid var(--border);border-bottom:none;font-size:12px;font-weight:500;background:var(--bg);color:var(--muted2);margin-right:2px;}
+.btn-tab.on{background:var(--white);color:var(--accent);font-weight:600;}
+.main{padding-top:var(--top-h);}
+.tabs-bar{padding:12px 20px 0;background:var(--white);border-bottom:1px solid var(--border);}
+.page{max-width:900px;margin:0 auto;padding:20px;}
+.card{background:var(--white);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.card-t{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.f-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.f-row label{font-size:9px;color:var(--muted);font-family:var(--mono);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.f-row input,.f-row select{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;}
+.f-row input:focus,.f-row select:focus{border-color:var(--accent);outline:none;}
+.f-row textarea{padding:10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:var(--bg);width:100%;min-height:140px;resize:vertical;font-family:var(--sans);}
+.f-row textarea:focus{border-color:var(--accent);outline:none;}
+.opp-card{border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;transition:border-color .12s;}
+.opp-card:hover{border-color:var(--accent);}
+.opp-t{font-size:13px;font-weight:600;}
+.opp-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin:3px 0;}
+.opp-arg{font-size:11px;color:var(--muted2);background:#FFF4EE;border-radius:4px;padding:6px 8px;margin-top:6px;}
+.opp-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.siret-result{background:var(--bg);border-radius:var(--r);padding:12px;font-size:12px;}
+.sr-row{display:flex;gap:10px;padding:4px 0;border-bottom:1px solid var(--border);}
+.sr-row:last-child{border:none;}
+.sr-k{color:var(--muted2);min-width:140px;font-size:11px;}
+.sr-v{font-weight:500;}
+.ai-result{background:var(--bg);border-radius:var(--r);padding:14px;font-size:13px;line-height:1.6;white-space:pre-wrap;min-height:80px;}
+.ai-loading{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.veille-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.veille-row:last-child{border:none;}
+.veille-t{font-size:12px;font-weight:500;flex:1;}
+.veille-date{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap;}
+.veille-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.vtag{font-size:9px;padding:2px 6px;border-radius:10px;font-family:var(--mono);font-weight:600;background:#DBEAFE;color:#1d4ed8;}
+.tab-content{display:none;}
+.tab-content.on{display:block;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Radar Opportunités</div>
+</div>
+
+<div class="main">
+<div class="tabs-bar">
+  <button class="btn-tab on" onclick="radTab('annonces',this)">Analyser une annonce</button>
+  <button class="btn-tab" onclick="radTab('siret',this)">Lookup SIRET</button>
+  <button class="btn-tab" onclick="radTab('veille',this)">Bibliothèque veille</button>
+  <button class="btn-tab" onclick="radTab('args',this)">Arguments IA</button>
+</div>
+
+<div class="page">
+
+<!-- ONGLET ANNONCES -->
+<div class="tab-content on" id="tab-annonces">
+  <div class="card">
+    <div class="card-t">Analyser une annonce — Copier-coller depuis LinkedIn, Indeed, leboncoin pro…</div>
+    <div class="f-row"><label>Texte de l'annonce</label>
+      <textarea id="ann-text" placeholder="Coller ici le texte complet de l'annonce... L'IA identifiera l'entreprise, la qualification, le niveau, et générera l'argument commercial adapté."></textarea></div>
+    <button class="btn btn-primary btn-sm" onclick="analyseAnnonce()">🤖 Analyser avec IA</button>
+    <span style="font-size:10px;color:var(--muted);margin-left:10px;font-family:var(--mono)">Nécessite une clé Claude API dans les Paramètres</span>
+  </div>
+  <div class="card" id="ann-result-card" style="display:none">
+    <div class="card-t">Résultat de l'analyse</div>
+    <div id="ann-result"></div>
+  </div>
+
+  <!-- Résultats opportunités -->
+  <div class="card">
+    <div class="card-t">Opportunités identifiées <span id="opp-cnt" style="font-weight:400;color:var(--muted)"></span></div>
+    <div id="opp-list">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Analyser une annonce pour voir les opportunités apparaître ici</div>
+    </div>
+  </div>
+</div>
+
+<!-- ONGLET SIRET -->
+<div class="tab-content" id="tab-siret">
+  <div class="card">
+    <div class="card-t">Enrichissement automatique par SIRET</div>
+    <div class="grid2">
+      <div>
+        <div class="f-row"><label>SIRET (14 chiffres)</label>
+          <input type="text" id="siret-inp" placeholder="ex: 12345678901234" maxlength="14" oninput="siretAutoSearch()"/></div>
+        <div class="f-row"><label>Ou recherche par nom</label>
+          <input type="text" id="siret-nom" placeholder="ex: Dupont Plâtrerie" oninput="siretSearchNom()"/></div>
+        <button class="btn btn-blue btn-sm" onclick="siretLookup()">🔍 Rechercher</button>
+        <div style="margin-top:10px;font-size:10px;color:var(--muted);font-family:var(--mono);">
+          Sources : data.gouv.fr SIRENE (sans clé) · BODACC (sans clé) · Pappers (clé gratuite)
+        </div>
+      </div>
+      <div>
+        <div id="siret-result" class="siret-result" style="min-height:100px;">
+          <span style="color:var(--muted);font-family:var(--mono);font-size:11px">Saisir un SIRET ou un nom d'entreprise</span>
+        </div>
+      </div>
+    </div>
+    <div id="siret-actions" style="display:none;margin-top:12px;display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="siretCreateProspect()">+ Créer prospect CRM</button>
+      <button class="btn btn-ghost btn-sm" onclick="siretGenArg()">🤖 Générer argument</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONGLET VEILLE -->
+<div class="tab-content" id="tab-veille">
+  <div class="card">
+    <div class="card-t">Ajouter un article à la veille</div>
+    <div class="f-row"><label>Titre / Source</label>
+      <input type="text" id="v-titre" placeholder="ex: Article LinkedIn — Bouygues recrute 200 techniciens"/></div>
+    <div class="f-row"><label>Texte à analyser</label>
+      <textarea id="v-text" placeholder="Coller le contenu de l'article..."></textarea></div>
+    <button class="btn btn-primary btn-sm" onclick="veilleAnalyse()">🤖 Synthétiser et archiver</button>
+  </div>
+  <div class="card">
+    <div class="card-t">Bibliothèque de veille <span id="veille-cnt" style="font-weight:400;color:var(--muted)"></span></div>
+    <div id="veille-list">
+      <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucun article archivé</div>
+    </div>
+  </div>
+</div>
+
+<!-- ONGLET ARGUMENTS IA -->
+<div class="tab-content" id="tab-args">
+  <div class="card">
+    <div class="card-t">Générateur d'arguments commerciaux IA</div>
+    <div class="grid2">
+      <div>
+        <div class="f-row"><label>Profil prospect</label>
+          <select id="arg-statut">
+            <option value="froid">Prospect froid — jamais contacté</option>
+            <option value="tiede">Prospect tiède — déjà contacté</option>
+            <option value="chaud">Prospect chaud — besoin exprimé</option>
+            <option value="client">Client existant — réactivation</option>
+            <option value="dormant">Client dormant — relance 60j+</option>
+          </select></div>
+        <div class="f-row"><label>Corps de métier du prospect</label>
+          <select id="arg-metier">
+            <option>Plâtrerie / Plaquisterie</option>
+            <option>Peinture / Ravalement</option>
+            <option>Électricité CFO/CFA</option>
+            <option>CVC / Plomberie</option>
+            <option>Maçonnerie / Gros œuvre</option>
+            <option>Menuiserie / Serrurerie</option>
+            <option>Multi-corps d'état</option>
+          </select></div>
+        <div class="f-row"><label>Candidats disponibles (profils)</label>
+          <input type="text" id="arg-profils" placeholder="ex: Plaquiste N3 dispo immédiat, Staffeur N4 semaine pro"/>
+        </div>
+        <div class="f-row"><label>Objection anticipée</label>
+          <select id="arg-objection">
+            <option value="">Aucune</option>
+            <option value="prix">Prix trop élevé</option>
+            <option value="concurrent">Déjà un prestataire</option>
+            <option value="embauche">Préfère embaucher en CDI</option>
+            <option value="qualite">Doute sur la qualité des profils</option>
+            <option value="besoin">Pas de besoin pour l'instant</option>
+          </select></div>
+        <button class="btn btn-primary btn-sm" onclick="genArg()">🤖 Générer l'argument</button>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">ARGUMENT GÉNÉRÉ</div>
+        <div id="arg-result" class="ai-result">
+          <span style="color:var(--muted)">Paramétrer et cliquer sur "Générer"</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="copyArg()">Copier</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+var veille = [];
+var savedOpps = [];
+var siretData = null;
+try{ veille=JSON.parse(localStorage.getItem('jtp_veille')||'[]'); }catch(e){}
+var apiKeys={};
+try{ apiKeys=JSON.parse(localStorage.getItem('jtp_api_keys')||'{}'); }catch(e){}
+var agence={};
+try{ agence=JSON.parse(localStorage.getItem('agence_btp')||'{}'); }catch(e){}
+
+function radTab(tab,btn){
+  document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('on'); });
+  document.querySelectorAll('.btn-tab').forEach(function(el){ el.classList.remove('on'); });
+  document.getElementById('tab-'+tab).classList.add('on');
+  btn.classList.add('on');
+  if(tab==='veille') veilleRender();
+}
+
+// ── IA CALL ───────────────────────────────────────────────────────────────────
+async function claudeCall(prompt, targetEl) {
+  var key = apiKeys.claude || '';
+  if(!key){
+    targetEl.innerHTML='<span style="color:var(--amber)">⚠ Clé Claude API non configurée — Aller dans Paramètres</span>';
+    return null;
+  }
+  targetEl.innerHTML='<div class="ai-loading"><div class="ai-dot"></div>Analyse en cours...</div>';
+  try{
+    var resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    var data = await resp.json();
+    if(data.error){ targetEl.innerHTML='<span style="color:var(--red)">Erreur API : '+data.error.message+'</span>'; return null; }
+    return data.content[0].text;
+  }catch(err){
+    targetEl.innerHTML='<span style="color:var(--red)">Erreur réseau : '+err.message+'</span>';
+    return null;
+  }
+}
+
+// ── ANALYSE ANNONCE ───────────────────────────────────────────────────────────
+async function analyseAnnonce(){
+  var txt = (document.getElementById('ann-text')||{}).value||'';
+  if(!txt.trim()){ alert('Coller le texte d\'une annonce'); return; }
+  var rc = document.getElementById('ann-result-card');
+  var re = document.getElementById('ann-result');
+  if(rc) rc.style.display='block';
+
+  var prompt = 'Tu es un Responsable d\'Agence d\'intérim BTP en Île-de-France spécialisé dans le second œuvre.\n\n'
+    +'Analyse cette annonce de recrutement et fournis une analyse structurée en JSON strict :\n\n'
+    +'ANNONCE :\n'+txt+'\n\n'
+    +'Réponds UNIQUEMENT avec ce JSON (sans markdown) :\n'
+    +'{"entreprise":"","secteur_btp":true,"qualif":"","niveau_estime":"","zone":"","signal":"","argument":"","action":""}';
+
+  var result = await claudeCall(prompt, re);
+  if(!result) return;
+
+  try{
+    var clean = result.replace(/```json|```/g,'').trim();
+    var parsed = JSON.parse(clean);
+
+    re.innerHTML='<div class="siret-result">'
+      +'<div class="sr-row"><span class="sr-k">Entreprise détectée</span><span class="sr-v">'+esc(parsed.entreprise||'Non identifiée')+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Qualification</span><span class="sr-v">'+esc(parsed.qualif||'—')+(parsed.niveau_estime?' — '+esc(parsed.niveau_estime):'')+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Zone</span><span class="sr-v">'+esc(parsed.zone||'—')+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Signal</span><span class="sr-v" style="color:var(--amber)">'+esc(parsed.signal||'—')+'</span></div>'
+      +'</div>'
+      +'<div class="opp-arg" style="margin-top:10px;"><strong>Argument :</strong> '+esc(parsed.argument||'—')+'</div>'
+      +'<div style="margin-top:10px;display:flex;gap:8px;">'
+      +(parsed.entreprise?'<button class="btn btn-primary btn-sm" onclick="createProspectFromParsed(\''+encodeURIComponent(JSON.stringify(parsed))+'\')">+ Créer prospect CRM</button>':'')
+      +'</div>';
+
+    // Ajouter à la liste des opportunités
+    var ol=document.getElementById('opp-list');
+    if(ol && parsed.entreprise){
+      savedOpps.push(parsed);
+      var cnt=document.getElementById('opp-cnt');
+      if(cnt) cnt.textContent='('+savedOpps.length+')';
+      renderOpps();
+    }
+  }catch(e){
+    re.innerHTML='<div style="white-space:pre-wrap;font-size:12px;">'+esc(result)+'</div>';
+  }
+}
+
+function renderOpps(){
+  var ol=document.getElementById('opp-list');
+  if(!ol||!savedOpps.length) return;
+  ol.innerHTML=savedOpps.map(function(p,i){
+    return '<div class="opp-card">'
+      +'<div class="opp-t">'+esc(p.entreprise)+'</div>'
+      +'<div class="opp-sub">'+esc(p.qualif||'')+(p.zone?' · '+esc(p.zone):'')+'</div>'
+      +(p.argument?'<div class="opp-arg">'+esc(p.argument)+'</div>':'')
+      +'<div class="opp-acts">'
+      +'<button class="btn btn-primary btn-sm" onclick="createProspectFromParsed(\''+encodeURIComponent(JSON.stringify(p))+'\')">+ CRM</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="savedOpps.splice('+i+',1);renderOpps()">×</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function createProspectFromParsed(encoded){
+  try{
+    var p = JSON.parse(decodeURIComponent(encoded));
+    var crmDB=[];
+    try{ crmDB=JSON.parse(localStorage.getItem('crm_btp_db')||'[]'); }catch(e){}
+    var np={
+      id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),
+      nom:p.entreprise||'Prospect', metier:p.qualif||'',
+      statut:'tiede', zone:p.zone||'',
+      notes:'Source: annonce recrutement\nSignal: '+p.signal+'\nArg: '+p.argument,
+      nextType:'appel', nextDate:new Date().toISOString().slice(0,10),
+      nextDetail:p.action||'Appel suite annonce recrutement',
+      journal:[], besoins:[], createdAt:new Date().toISOString().slice(0,10)
+    };
+    crmDB.push(np);
+    localStorage.setItem('crm_btp_db',JSON.stringify(crmDB));
+    alert('Prospect "'+np.nom+'" créé dans le CRM');
+  }catch(e){ alert('Erreur création: '+e.message); }
+}
+
+// ── SIRET ─────────────────────────────────────────────────────────────────────
+function siretAutoSearch(){
+  var v=(document.getElementById('siret-inp')||{}).value||'';
+  if(v.length>=14) siretLookup();
+}
+
+function siretSearchNom(){
+  var q=(document.getElementById('siret-nom')||{}).value||'';
+  if(q.length<3) return;
+  clearTimeout(window._siretTimer);
+  window._siretTimer = setTimeout(function(){ siretSearchByNom(q); }, 600);
+}
+
+async function siretSearchByNom(q){
+  var re=document.getElementById('siret-result');
+  if(!re) return;
+  re.innerHTML='<div class="ai-loading"><div class="ai-dot"></div>Recherche...</div>';
+  try{
+    var url='https://recherche-entreprises.api.gouv.fr/search?q='+encodeURIComponent(q)+'&limit=3';
+    var resp=await fetch(url);
+    var data=await resp.json();
+    var results=data.results||[];
+    if(!results.length){ re.innerHTML='<span style="color:var(--muted);font-family:var(--mono);font-size:11px">Aucun résultat</span>'; return; }
+    re.innerHTML=results.map(function(r){
+      var siren=r.siren||''; var siege=r.siege||{};
+      return '<div onclick="loadSiretData(\''+siren+'\')" style="cursor:pointer;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;transition:border-color .1s;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+        +'<div style="font-weight:600;font-size:12px;">'+esc(r.nom_complet||r.nom_raison_sociale||'—')+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);font-family:var(--mono);">'+(siege.code_postal||'')+' '+esc(siege.libelle_commune||'')+'</div>'
+        +'</div>';
+    }).join('');
+  }catch(err){ re.innerHTML='<span style="color:var(--red)">Erreur recherche</span>'; }
+}
+
+async function siretLookup(){
+  var siret=(document.getElementById('siret-inp')||{}).value||'';
+  siret=siret.replace(/\s/g,'');
+  if(siret.length<9){ alert('SIRET de 14 chiffres ou SIREN de 9 chiffres requis'); return; }
+  await loadSiretData(siret);
+}
+
+async function loadSiretData(siret){
+  var re=document.getElementById('siret-result');
+  if(!re) return;
+  re.innerHTML='<div class="ai-loading"><div class="ai-dot"></div>Interrogation SIRENE...</div>';
+  try{
+    var url='https://recherche-entreprises.api.gouv.fr/search?q='+siret+'&limit=1';
+    var resp=await fetch(url);
+    var data=await resp.json();
+    var r=(data.results||[])[0];
+    if(!r){ re.innerHTML='<span style="color:var(--red)">Entreprise non trouvée</span>'; return; }
+
+    var siege=r.siege||{};
+    var naf=r.activite_principale||siege.activite_principale||'';
+    var isBTP=['41','42','43'].some(function(c){ return naf.startsWith(c); });
+    var taille=r.tranche_effectif_salarie||'';
+    var effectifLabels={'00':'0','01':'1-2','02':'3-5','03':'6-9','11':'10-19','12':'20-49','21':'50-99','22':'100-199','31':'200-249','32':'250-499','41':'500-999','42':'1000-1999','51':'2000-4999','52':'5000-9999','53':'10000+'};
+    siretData={
+      nom:r.nom_complet||r.nom_raison_sociale||'—',
+      siren:r.siren,
+      adresse:[siege.numero_voie,siege.type_voie,siege.libelle_voie].filter(Boolean).join(' '),
+      cp:siege.code_postal||'',
+      ville:siege.libelle_commune||'',
+      naf:naf,
+      isBTP:isBTP,
+      taille:effectifLabels[taille]||taille||'—',
+      statut:r.etat_administratif||'',
+    };
+
+    var btpBadge=isBTP?'<span style="background:#DCFCE7;color:#15803d;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:var(--mono);">✓ BTP</span>':'';
+    var actif=siretData.statut==='A';
+    re.innerHTML='<div class="sr-row"><span class="sr-k">Raison sociale</span><span class="sr-v">'+esc(siretData.nom)+' '+btpBadge+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">SIREN</span><span class="sr-v" style="font-family:var(--mono);">'+siretData.siren+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Adresse siège</span><span class="sr-v">'+esc(siretData.adresse||'—')+'<br>'+esc(siretData.cp)+' '+esc(siretData.ville)+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Code APE</span><span class="sr-v" style="font-family:var(--mono);">'+esc(naf)+(isBTP?' — BTP confirmé':'')+'</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Effectif</span><span class="sr-v">'+esc(siretData.taille)+' salariés</span></div>'
+      +'<div class="sr-row"><span class="sr-k">Statut</span><span class="sr-v" style="color:'+(actif?'var(--green2)':'var(--red)))')+'">'+(actif?'Active':'Radiée / Fermée')+'</span></div>';
+
+    var acts=document.getElementById('siret-actions');
+    if(acts) acts.style.display='flex';
+  }catch(err){ re.innerHTML='<span style="color:var(--red)">Erreur: '+err.message+'</span>'; }
+}
+
+function siretCreateProspect(){
+  if(!siretData){ alert('Faire une recherche SIRET d\'abord'); return; }
+  var crmDB=[];
+  try{ crmDB=JSON.parse(localStorage.getItem('crm_btp_db')||'[]'); }catch(e){}
+  var np={
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,4),
+    nom:siretData.nom, metier:siretData.isBTP?'BTP':'',
+    statut:'froid', zone:siretData.cp||siretData.ville,
+    adresse:siretData.adresse+' '+siretData.cp+' '+siretData.ville,
+    siren:siretData.siren, taille:siretData.taille,
+    notes:'Import SIRENE — APE: '+siretData.naf,
+    nextType:'appel', nextDate:new Date().toISOString().slice(0,10),
+    nextDetail:'Premier contact', journal:[], besoins:[],
+    createdAt:new Date().toISOString().slice(0,10)
+  };
+  crmDB.push(np);
+  localStorage.setItem('crm_btp_db',JSON.stringify(crmDB));
+  alert('Prospect "'+np.nom+'" créé dans le CRM depuis SIRENE');
+}
+
+async function siretGenArg(){
+  if(!siretData) return;
+  var re=document.getElementById('siret-result');
+  var prompt='Tu es RA intérim BTP IDF. Génère un argument d\'appel en 3 phrases maximum pour contacter '
+    +siretData.nom+' ('+siretData.taille+' salariés, code APE '+siretData.naf+', '+siretData.ville+').'
+    +' L\'objectif est d\'identifier leurs besoins en intérimaires BTP.';
+  var result = await claudeCall(prompt, re);
+  if(result) re.innerHTML='<div class="opp-arg">'+esc(result)+'</div>';
+}
+
+// ── VEILLE ────────────────────────────────────────────────────────────────────
+async function veilleAnalyse(){
+  var titre=(document.getElementById('v-titre')||{}).value||'Article sans titre';
+  var txt=(document.getElementById('v-text')||{}).value||'';
+  if(!txt.trim()){ alert('Coller un texte à analyser'); return; }
+  var el=document.getElementById('veille-list');
+
+  var prompt='Tu es RA intérim BTP IDF. Analyse cet article et fournis un JSON strict sans markdown :\n\n'
+    +'{"resume":"(3 points actionnables max)","entreprises":["nom1","nom2"],"qualifs":["qualif1"],"opportunites":"(opportunités commerciales concrètes)","tags":["tag1","tag2"]}\n\n'
+    +'Article :\n'+txt;
+
+  var fakeEl=document.createElement('div');
+  var result = await claudeCall(prompt, fakeEl);
+  if(!result) { if(el) el.innerHTML+='<div style="color:var(--red)">Erreur analyse</div>'; return; }
+
+  try{
+    var clean=result.replace(/```json|```/g,'').trim();
+    var parsed=JSON.parse(clean);
+    veille.unshift({
+      titre:titre, date:new Date().toISOString().slice(0,10),
+      resume:parsed.resume||'',
+      entreprises:parsed.entreprises||[],
+      qualifs:parsed.qualifs||[],
+      opportunites:parsed.opportunites||'',
+      tags:parsed.tags||[]
+    });
+    localStorage.setItem('jtp_veille',JSON.stringify(veille));
+    document.getElementById('v-titre').value='';
+    document.getElementById('v-text').value='';
+    veilleRender();
+  }catch(e){
+    veille.unshift({titre:titre,date:new Date().toISOString().slice(0,10),resume:result,entreprises:[],qualifs:[],opportunites:'',tags:[]});
+    localStorage.setItem('jtp_veille',JSON.stringify(veille));
+    veilleRender();
+  }
+}
+
+function veilleRender(){
+  var el=document.getElementById('veille-list');
+  var cnt=document.getElementById('veille-cnt');
+  if(cnt) cnt.textContent='('+veille.length+')';
+  if(!el) return;
+  if(!veille.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucun article archivé</div>'; return; }
+  el.innerHTML=veille.map(function(v,i){
+    return '<div class="veille-row">'
+      +'<div style="flex:1">'
+      +'<div class="veille-t">'+esc(v.titre)+'</div>'
+      +(v.resume?'<div style="font-size:11px;color:var(--muted2);margin-top:4px">'+esc(v.resume.slice(0,120))+'…</div>':'')
+      +(v.opportunites?'<div class="opp-arg" style="margin-top:6px;font-size:10px">'+esc(v.opportunites)+'</div>':'')
+      +'<div class="veille-tags">'+(v.tags||[]).map(function(t){ return '<span class="vtag">'+esc(t)+'</span>'; }).join('')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">'
+      +'<span class="veille-date">'+v.date+'</span>'
+      +'<button class="btn btn-ghost btn-sm" style="font-size:10px;color:var(--red);" onclick="veilleDelete('+i+')">×</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function veilleDelete(i){ veille.splice(i,1); localStorage.setItem('jtp_veille',JSON.stringify(veille)); veilleRender(); }
+
+// ── ARGUMENTS ─────────────────────────────────────────────────────────────────
+async function genArg(){
+  var statut=(document.getElementById('arg-statut')||{}).value||'froid';
+  var metier=(document.getElementById('arg-metier')||{}).value||'BTP';
+  var profils=(document.getElementById('arg-profils')||{}).value||'';
+  var objection=(document.getElementById('arg-objection')||{}).value||'';
+  var re=document.getElementById('arg-result');
+
+  var statutMap={froid:'jamais contacté (appel à froid)',tiede:'déjà contacté sans suite',chaud:'a exprimé un besoin',client:'client existant à réactiver',dormant:'client inactif depuis 60+ jours'};
+  var prompt='Tu es RA intérim BTP IDF, agence spécialisée second œuvre qualifié.\n'
+    +'Génère un script d\'appel court (5-7 phrases max) pour un prospect '+statutMap[statut]+'.\n'
+    +'Secteur : '+metier+'\n'
+    +(profils?'Profils disponibles : '+profils+'\n':'')
+    +(objection?'Objection probable : '+objection+'\n':'')
+    +'Agence : '+(agence.nom||'notre agence')+'\n'
+    +'Ton : direct, professionnel, orienté résultat. Pas de formules bateau.';
+
+  var result = await claudeCall(prompt, re);
+  if(result) re.textContent=result;
+}
+
+function copyArg(){
+  var el=document.getElementById('arg-result');
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent||'').then(function(){ alert('Copié'); });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+veilleRender();
+</script>
+</body>
+</html>

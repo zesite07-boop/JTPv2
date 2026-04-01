@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — Fiche Marge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--text:#1e293b;--text2:#334155;
+  --muted:#94a3b8;--muted2:#64748b;--accent:#f97316;--green:#22c55e;
+  --green2:#16a34a;--blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;--purple:#a855f7;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",monospace;
+  --r:8px;--r-lg:12px;--top-h:54px;--shadow:0 1px 4px rgba(0,0,0,.07);
+}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+button,input,select{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;z-index:100;}
+.tb-back{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;transition:all .12s;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;}
+.btn{padding:7px 14px;border-radius:6px;cursor:pointer;border:none;font-size:12px;font-weight:500;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-ghost{background:var(--white);border:1px solid var(--border);color:var(--muted2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.main{padding-top:var(--top-h);}
+.page{max-width:1000px;margin:0 auto;padding:20px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.card{background:var(--white);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.card-t{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+
+/* Inputs */
+.f-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.f-row label{font-size:9px;color:var(--muted);font-family:var(--mono);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.f-row input,.f-row select{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);width:100%;transition:border .12s;}
+.f-row input:focus,.f-row select:focus{border-color:var(--accent);outline:none;background:var(--white);}
+
+/* Résultat marge */
+.marge-result{background:var(--bg);border-radius:var(--r-lg);padding:14px;border:2px solid var(--border);transition:border-color .2s;}
+.marge-result.ok{border-color:var(--green);}
+.marge-result.warn{border-color:var(--amber);}
+.marge-result.bad{border-color:var(--red);}
+.mr-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.mr-row:last-child{border:none;font-weight:600;font-size:13px;padding-top:8px;}
+.mr-lbl{color:var(--muted2);}
+.mr-val{font-family:var(--mono);font-weight:500;}
+
+/* Gauge coefficient */
+.coeff-gauge{position:relative;height:12px;background:#E2E8F0;border-radius:6px;overflow:hidden;margin:8px 0;}
+.cg-fill{height:100%;border-radius:6px;transition:width .3s,background .3s;}
+.cg-mark{position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.3);}
+.coeff-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
+
+/* Zones ITR */
+.itr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.itr-zone{padding:6px 4px;text-align:center;border-radius:6px;border:1px solid var(--border);font-family:var(--mono);}
+.itr-zone.active{border-color:var(--accent);background:#FFF4EE;}
+.itr-n{font-size:10px;font-weight:700;color:var(--accent);}
+.itr-km{font-size:8px;color:var(--muted);}
+.itr-val{font-size:11px;font-weight:600;}
+
+/* HS BTP */
+.hs-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);}
+.hs-table th,.hs-table td{padding:6px 10px;text-align:right;border-bottom:1px solid var(--border);}
+.hs-table th{font-size:9px;color:var(--muted);font-weight:600;text-align:right;}
+.hs-table td:first-child,.hs-table th:first-child{text-align:left;}
+
+/* Grilles */
+.grille-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 0.5fr;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+.grille-row:last-child{border:none;}
+.gr-qualif{font-size:12px;font-weight:500;}
+.gr-inp{border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:11px;font-family:var(--mono);background:var(--bg);width:100%;}
+.gr-inp:focus{border-color:var(--accent);outline:none;}
+.gr-coeff{font-size:11px;font-family:var(--mono);}
+.gr-ok{color:var(--green2);}
+.gr-warn{color:var(--amber);}
+.gr-bad{color:var(--red);}
+
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}.itr-grid{grid-template-columns:repeat(4,1fr);}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Fiche Marge BTP</div>
+  <div style="margin-left:auto;display:flex;gap:8px;">
+    <button class="btn btn-ghost btn-sm" onclick="margeReset()">Réinitialiser</button>
+    <button class="btn btn-primary btn-sm" onclick="window.print()">📄 Imprimer</button>
+  </div>
+</div>
+
+<div class="main">
+<div class="page">
+
+<!-- CALCULATEUR PRINCIPAL -->
+<div class="grid2">
+  <div class="card">
+    <div class="card-t">Calcul de marge — Paramètres</div>
+    <div class="f-row"><label>Taux de charges patronales (%)</label>
+      <input type="number" id="txCharges" value="43" step="0.5" oninput="margeCalc()"/></div>
+    <div class="f-row"><label>Qualification</label>
+      <select id="m-qualif" onchange="margeQualifChange()">
+        <option value="">— Choisir —</option>
+        <option value="plaquiste_n2">Plaquiste N2</option>
+        <option value="plaquiste_n3">Plaquiste N3</option>
+        <option value="staffeur_n3">Staffeur / Stuc N3</option>
+        <option value="peintre_n2">Peintre N2</option>
+        <option value="peintre_n3">Peintre N3</option>
+        <option value="elec_cfo_n2">Électricien CFO N2</option>
+        <option value="elec_cfo_n3">Électricien CFO N3</option>
+        <option value="plombier_n2">Plombier N2</option>
+        <option value="cvc_n3">Technicien CVC N3</option>
+        <option value="macon_n2">Maçon N2</option>
+        <option value="coffr_n3">Coffreur-Bancheur N3</option>
+        <option value="cond_engins">Conducteur Engins CACES R482</option>
+        <option value="chef_eq">Chef d'équipe</option>
+        <option value="cond_trav">Conducteur de Travaux</option>
+      </select></div>
+    <div class="grid2" style="gap:8px;">
+      <div class="f-row"><label>Taux brut horaire (€/h)</label>
+        <input type="number" id="m-tb" value="15.50" step="0.25" oninput="margeCalc()"/></div>
+      <div class="f-row"><label>Taux client (€/h)</label>
+        <input type="number" id="m-tc" value="34.00" step="0.50" oninput="margeCalc()"/></div>
+    </div>
+    <div class="grid2" style="gap:8px;">
+      <div class="f-row"><label>H semaine</label>
+        <input type="number" id="m-h" value="35" step="0.5" oninput="margeCalc()"/></div>
+      <div class="f-row"><label>Nb semaines / mois</label>
+        <input type="number" id="m-sem" value="4.33" step="0.01" oninput="margeCalc()"/></div>
+    </div>
+    <div class="grid2" style="gap:8px;">
+      <div class="f-row"><label>Panier repas (€/j)</label>
+        <input type="number" id="m-panier" value="0" step="0.50" oninput="margeCalc()"/></div>
+      <div class="f-row"><label>Zone ITR</label>
+        <select id="m-itr" onchange="margeCalc()">
+          <option value="0">Aucune</option>
+          <option value="2.20">Z1 — ≤5 km — 2,20€/j</option>
+          <option value="4.50">Z2 — 5→10 km — 4,50€/j</option>
+          <option value="6.80">Z3 — 10→20 km — 6,80€/j</option>
+          <option value="9.15">Z4 — 20→30 km — 9,15€/j</option>
+          <option value="11.50">Z5 — 30→40 km — 11,50€/j</option>
+          <option value="13.85">Z6 — 40→50 km — 13,85€/j</option>
+          <option value="16.20">Z7 — >50 km — 16,20€/j</option>
+        </select></div>
+    </div>
+    <div class="f-row"><label>Jours travaillés / semaine</label>
+      <input type="number" id="m-jours" value="5" min="1" max="6" oninput="margeCalc()"/></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">Résultat</div>
+    <div class="marge-result" id="marge-result">
+      <div class="mr-row"><span class="mr-lbl">Taux brut</span><span class="mr-val" id="r-tb">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">Charges patronales (~43%)</span><span class="mr-val" id="r-ch">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">IFM (10% du TB)</span><span class="mr-val" id="r-ifm">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">ICP (10% TB+IFM)</span><span class="mr-val" id="r-icp">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">Panier + ITR</span><span class="mr-val" id="r-primes">—</span></div>
+      <div class="mr-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:8px;"><span class="mr-lbl" style="font-weight:600">Coût horaire réel</span><span class="mr-val" id="r-cout" style="color:var(--red)">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">Taux client facturé</span><span class="mr-val" id="r-tc">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">Marge brute / heure</span><span class="mr-val" id="r-mb-h">—</span></div>
+      <div class="mr-row"><span class="mr-lbl">Marge brute / mois</span><span class="mr-val" id="r-mb-m">—</span></div>
+      <div class="mr-row"><span class="mr-lbl" style="font-weight:600">Taux de marge</span><span class="mr-val" id="r-pct" style="font-size:16px">—</span></div>
+      <div class="mr-row" style="background:var(--bg);border-radius:6px;padding:6px 8px;margin-top:6px;"><span class="mr-lbl">Coefficient</span><span class="mr-val" id="r-coeff" style="font-size:15px">—</span></div>
+    </div>
+
+    <!-- Gauge coefficient -->
+    <div style="margin-top:12px;">
+      <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px;">COEFFICIENT — ZONE DE RENTABILITÉ</div>
+      <div class="coeff-gauge">
+        <div class="cg-fill" id="cg-fill" style="width:0%"></div>
+        <div class="cg-mark" style="left:41%"></div><!-- 2.05 -->
+        <div class="cg-mark" style="left:55%"></div><!-- 2.15 -->
+      </div>
+      <div class="coeff-labels">
+        <span>1.8</span><span style="color:var(--red)">2.05↑</span><span style="color:var(--amber)">2.15↑</span><span>2.5+</span>
+      </div>
+    </div>
+
+    <!-- Alerte taux plancher -->
+    <div id="plancher-alert" style="margin-top:10px;font-size:11px;font-family:var(--mono);padding:8px 12px;border-radius:6px;display:none;"></div>
+  </div>
+</div>
+
+<!-- ZONES ITR ACOSS 2025 -->
+<div class="card">
+  <div class="card-t">Zones ITR ACOSS 2025</div>
+  <div class="itr-grid" id="itr-grid">
+    <div class="itr-zone"><div class="itr-n">Z1</div><div class="itr-km">≤5 km</div><div class="itr-val">2,20€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z2</div><div class="itr-km">5→10 km</div><div class="itr-val">4,50€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z3</div><div class="itr-km">10→20 km</div><div class="itr-val">6,80€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z4</div><div class="itr-km">20→30 km</div><div class="itr-val">9,15€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z5</div><div class="itr-km">30→40 km</div><div class="itr-val">11,50€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z6</div><div class="itr-km">40→50 km</div><div class="itr-val">13,85€</div></div>
+    <div class="itr-zone"><div class="itr-n">Z7</div><div class="itr-km">>50 km</div><div class="itr-val">16,20€</div></div>
+  </div>
+  <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:8px;">Panier repas : plafonné à 10,10€/j — Non soumis à cotisations sociales</div>
+</div>
+
+<!-- HEURES SUPPLÉMENTAIRES BTP -->
+<div class="card">
+  <div class="card-t">Heures supplémentaires BTP — Simulation</div>
+  <div class="grid2">
+    <div>
+      <div class="grid2" style="gap:8px;">
+        <div class="f-row"><label>TB horaire (€/h)</label>
+          <input type="number" id="hs-tb" value="15.50" step="0.25" oninput="hsCalc()"/></div>
+        <div class="f-row"><label>Heures semaine</label>
+          <input type="number" id="hs-h" value="39" step="1" min="35" max="48" oninput="hsCalc()"/></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted2);font-family:var(--mono);padding:8px;background:var(--bg);border-radius:6px;">
+        <div>Majoration +25% : heures 36e à 43e</div>
+        <div>Majoration +50% : à partir de la 44e heure</div>
+        <div>Base contractuelle BTP : 35h/sem</div>
+      </div>
+    </div>
+    <div>
+      <table class="hs-table" id="hs-table">
+        <thead><tr><th>Tranche</th><th>Heures</th><th>Taux</th><th>Coût/h</th></tr></thead>
+        <tbody id="hs-tbody"></tbody>
+      </table>
+      <div id="hs-total" style="font-family:var(--mono);font-size:11px;margin-top:8px;padding:6px;background:var(--bg);border-radius:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GRILLES TARIFAIRES -->
+<div class="card">
+  <div class="card-t">Grilles tarifaires par qualification</div>
+  <div style="font-size:11px;color:var(--muted2);margin-bottom:12px;">Saisir le TC pratiqué — le coefficient et la marge sont calculés automatiquement (TB de référence ACOSS 2025)</div>
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 0.5fr;gap:6px;padding:6px 0;border-bottom:2px solid var(--border);">
+    <div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono)">QUALIFICATION</div>
+    <div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right">TB REF.</div>
+    <div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right">TC SAISI</div>
+    <div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right">COEFF.</div>
+    <div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right">MARGE</div>
+  </div>
+  <div id="grilles-list"></div>
+  <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="grilleSave()">💾 Sauvegarder les grilles</button>
+  <span id="grille-saved" style="font-size:10px;color:var(--green2);font-family:var(--mono);margin-left:10px;display:none">✓ Sauvegardé</span>
+</div>
+
+</div><!-- /page -->
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════════════════════
+var GRILLES_DATA = {
+  plaquiste_n2:  {l:'Plaquiste N2',     tb:13.50},
+  plaquiste_n3:  {l:'Plaquiste N3',     tb:15.50},
+  staffeur_n3:   {l:'Staffeur / Stuc N3', tb:16.00},
+  peintre_n2:    {l:'Peintre N2',       tb:13.00},
+  peintre_n3:    {l:'Peintre N3',       tb:15.00},
+  elec_cfo_n2:   {l:'Électricien CFO N2', tb:14.00},
+  elec_cfo_n3:   {l:'Électricien CFO N3', tb:16.50},
+  plombier_n2:   {l:'Plombier N2',      tb:14.00},
+  cvc_n3:        {l:'Technicien CVC N3', tb:17.00},
+  macon_n2:      {l:'Maçon N2',         tb:13.00},
+  coffr_n3:      {l:'Coffreur-Bancheur N3', tb:15.50},
+  cond_engins:   {l:'Conducteur Engins CACES R482', tb:15.00},
+  chef_eq:       {l:"Chef d'équipe",    tb:18.00},
+  cond_trav:     {l:'Conducteur Travaux', tb:22.00},
+};
+
+var savedGrilles = {};
+try{ savedGrilles = JSON.parse(localStorage.getItem('grilles_btp')||'{}'); }catch(e){}
+var agence = {};
+try{ agence = JSON.parse(localStorage.getItem('agence_btp')||'{}'); }catch(e){}
+
+function g(id){ return parseFloat(document.getElementById(id).value)||0; }
+function s(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; }
+function fmtE(n){ return n.toFixed(2)+'€'; }
+function fmtPct(n){ return n.toFixed(1)+'%'; }
+
+// ── CALCUL PRINCIPAL ─────────────────────────────────────────────────────────
+function margeCalc(){
+  var txCh = g('txCharges') / 100;
+  var tb   = g('m-tb');
+  var tc   = g('m-tc');
+  var h    = g('m-h') || 35;
+  var sem  = g('m-sem') || 4.33;
+  var jours= g('m-jours') || 5;
+  var pan  = g('m-panier');
+  var itr  = parseFloat((document.getElementById('m-itr')||{}).value)||0;
+
+  if(!tb||!tc){ return; }
+
+  // Décomposition charges
+  var chH  = tb * txCh;
+  var ifmH = tb * 0.10;
+  var icpH = (tb + ifmH) * 0.10;
+  var hMois= h * sem;
+  var joursM = jours * sem;
+  var primesH = (pan + itr) * joursM / hMois;
+  var coutH = tb + chH + ifmH + icpH + primesH;
+  var mbH   = tc - coutH;
+  var mbM   = mbH * hMois;
+  var mbPct = tc > 0 ? mbH / tc * 100 : 0;
+  var coeff = tb > 0 ? tc / tb : 0;
+
+  s('r-tb',   fmtE(tb)+'/h');
+  s('r-ch',   '+'+fmtE(chH)+'/h ('+Math.round(txCh*100)+'%)');
+  s('r-ifm',  '+'+fmtE(ifmH)+'/h');
+  s('r-icp',  '+'+fmtE(icpH)+'/h');
+  s('r-primes', primesH>0 ? '+'+fmtE(primesH)+'/h' : '0,00€');
+  s('r-cout', fmtE(coutH)+'/h');
+  s('r-tc',   fmtE(tc)+'/h');
+  s('r-mb-h', fmtE(mbH)+'/h');
+  s('r-mb-m', Math.round(mbM).toLocaleString('fr-FR')+'€/mois');
+  s('r-pct',  fmtPct(mbPct));
+
+  var coeffEl = document.getElementById('r-coeff');
+  if(coeffEl){
+    var cc = coeff.toFixed(2);
+    var ccol = coeff>=2.15?'var(--green2)':coeff>=2.05?'var(--amber)':'var(--red)';
+    coeffEl.innerHTML = '<span style="color:'+ccol+';font-size:18px;font-weight:700">×'+cc+'</span>';
+  }
+
+  // Gauge
+  var pct = Math.min(100, Math.max(0, (coeff-1.8)/(2.6-1.8)*100));
+  var fill = document.getElementById('cg-fill');
+  if(fill){
+    var col = coeff>=2.15?'var(--green)':coeff>=2.05?'var(--amber)':'var(--red)';
+    fill.style.width = pct+'%';
+    fill.style.background = col;
+  }
+
+  // Résultat card couleur
+  var res = document.getElementById('marge-result');
+  if(res){
+    res.className = 'marge-result '+(coeff>=2.15?'ok':coeff>=2.05?'warn':'bad');
+  }
+
+  // Alerte plancher
+  var alert = document.getElementById('plancher-alert');
+  if(alert){
+    if(coeff < 2.05){
+      var tbPlancher = tc / 2.05;
+      alert.style.display='block';
+      alert.style.background='#FEE2E2';
+      alert.style.color='#dc2626';
+      alert.innerHTML = '⚠ Coefficient '+coeff.toFixed(2)+' — SOUS LE PLANCHER<br>TB max acceptable : <strong>'+fmtE(tbPlancher)+'/h</strong> pour un coeff 2.05';
+    } else if(coeff < 2.15){
+      alert.style.display='block';
+      alert.style.background='#FEF3C7';
+      alert.style.color='#92400e';
+      alert.innerHTML = '⚡ Coefficient '+coeff.toFixed(2)+' — Zone limite (objectif ≥ 2.15)';
+    } else {
+      alert.style.display='none';
+    }
+  }
+}
+
+// ── QUALIF CHANGE ─────────────────────────────────────────────────────────────
+function margeQualifChange(){
+  var q = (document.getElementById('m-qualif')||{}).value;
+  if(q && GRILLES_DATA[q]){
+    var tb = savedGrilles[q]||GRILLES_DATA[q].tb;
+    var tc_saved = savedGrilles[q+'_tc']||'';
+    document.getElementById('m-tb').value = tb;
+    if(tc_saved) document.getElementById('m-tc').value = tc_saved;
+  }
+  margeCalc();
+}
+
+// ── HEURES SUPPLÉMENTAIRES ────────────────────────────────────────────────────
+function hsCalc(){
+  var tb = parseFloat((document.getElementById('hs-tb')||{}).value)||15.5;
+  var h  = parseFloat((document.getElementById('hs-h')||{}).value)||39;
+  var tbody = document.getElementById('hs-tbody');
+  var totEl = document.getElementById('hs-total');
+  if(!tbody) return;
+
+  var rows = [];
+  var h35 = Math.min(h, 35);
+  rows.push({t:'Normal (1→35h)', hn:h35, tx:tb, montant:h35*tb});
+
+  var h43 = Math.min(Math.max(0,h-35), 8);
+  if(h43>0) rows.push({t:'Majorées +25% (36→43h)', hn:h43, tx:Math.round(tb*1.25*100)/100, montant:h43*tb*1.25});
+
+  var h44 = Math.max(0,h-43);
+  if(h44>0) rows.push({t:'Majorées +50% (44h+)', hn:h44, tx:Math.round(tb*1.5*100)/100, montant:h44*tb*1.5});
+
+  tbody.innerHTML = rows.map(function(r){
+    return '<tr><td>'+r.t+'</td><td>'+r.hn+'h</td><td>'+r.tx.toFixed(2)+'€/h</td><td>'+r.montant.toFixed(2)+'€</td></tr>';
+  }).join('');
+
+  var total = rows.reduce(function(s,r){ return s+r.montant; }, 0);
+  var equiv = h > 0 ? total/h : 0;
+  if(totEl) totEl.innerHTML='Total semaine : <strong>'+total.toFixed(2)+'€</strong> — Taux moyen pondéré : <strong>'+equiv.toFixed(2)+'€/h</strong>';
+}
+
+// ── GRILLES ───────────────────────────────────────────────────────────────────
+function grillesRender(){
+  var el = document.getElementById('grilles-list'); if(!el) return;
+  var txCh = g('txCharges')/100 || 0.43;
+
+  el.innerHTML = Object.keys(GRILLES_DATA).map(function(k){
+    var gd = GRILLES_DATA[k];
+    var tbRef = savedGrilles[k]||gd.tb;
+    var tcVal = savedGrilles[k+'_tc']||'';
+    var coeff = tcVal ? Math.round(parseFloat(tcVal)/tbRef*100)/100 : null;
+    var mb = tcVal ? Math.round((parseFloat(tcVal) - tbRef*(1+txCh+0.10+0.11))*100)/100 : null;
+    var cCol = coeff ? (coeff>=2.15?'gr-ok':coeff>=2.05?'gr-warn':'gr-bad') : '';
+
+    return '<div class="grille-row">'
+      +'<div class="gr-qualif">'+gd.l+'</div>'
+      +'<div style="text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted2)">'+tbRef.toFixed(2)+'€</div>'
+      +'<div><input class="gr-inp" type="number" step="0.5" placeholder="TC €/h" value="'+tcVal+'" data-k="'+k+'" data-tb="'+tbRef+'" oninput="grilleUpdate(this)"/></div>'
+      +'<div class="gr-coeff '+cCol+'" data-coeff="'+k+'">'+(coeff?'×'+coeff:'—')+'</div>'
+      +'<div class="gr-coeff '+cCol+'" data-mb="'+k+'">'+(mb&&mb>0?mb.toFixed(2)+'€':'—')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function grilleUpdate(inp){
+  var k = inp.dataset.k;
+  var tb = parseFloat(inp.dataset.tb)||15;
+  var tc = parseFloat(inp.value)||0;
+  var txCh = g('txCharges')/100||0.43;
+  savedGrilles[k+'_tc'] = tc||'';
+
+  var cEl = document.querySelector('[data-coeff="'+k+'"]');
+  var mEl = document.querySelector('[data-mb="'+k+'"]');
+  if(tc && tb){
+    var coeff = Math.round(tc/tb*100)/100;
+    var mb = Math.round((tc - tb*(1+txCh+0.10+0.11))*100)/100;
+    var cCol = coeff>=2.15?'gr-ok':coeff>=2.05?'gr-warn':'gr-bad';
+    if(cEl){ cEl.textContent='×'+coeff; cEl.className='gr-coeff '+cCol; }
+    if(mEl){ mEl.textContent=mb>0?mb.toFixed(2)+'€':'—'; mEl.className='gr-coeff '+cCol; }
+  } else {
+    if(cEl){ cEl.textContent='—'; cEl.className='gr-coeff'; }
+    if(mEl){ mEl.textContent='—'; mEl.className='gr-coeff'; }
+  }
+}
+
+function grilleSave(){
+  // Sauvegarder les TB aussi
+  document.querySelectorAll('.gr-inp').forEach(function(inp){
+    savedGrilles[inp.dataset.k+'_tc'] = inp.value||'';
+  });
+  localStorage.setItem('grilles_btp', JSON.stringify(savedGrilles));
+  var ok = document.getElementById('grille-saved');
+  if(ok){ ok.style.display='inline'; setTimeout(function(){ ok.style.display='none'; }, 2000); }
+}
+
+function margeReset(){
+  document.getElementById('m-tb').value='15.50';
+  document.getElementById('m-tc').value='34.00';
+  document.getElementById('m-h').value='35';
+  document.getElementById('m-sem').value='4.33';
+  document.getElementById('m-panier').value='0';
+  document.getElementById('m-itr').value='0';
+  document.getElementById('m-jours').value='5';
+  document.getElementById('m-qualif').value='';
+  margeCalc();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+margeCalc();
+hsCalc();
+grillesRender();
+</script>
+</body>
+</html>

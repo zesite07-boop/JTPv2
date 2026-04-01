@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JTIPilot — P&L</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#F4F6FA;--white:#fff;--border:#EDEEF2;--text:#1e293b;--text2:#334155;--muted:#94a3b8;--muted2:#64748b;--accent:#f97316;--green:#22c55e;--green2:#16a34a;--blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;--purple:#a855f7;--sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",monospace;--r:8px;--r-lg:12px;--top-h:54px;--shadow:0 1px 4px rgba(0,0,0,.07);}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+button,input,select{font-family:var(--sans);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px;}
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;z-index:100;}
+.tb-back{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--muted2);cursor:pointer;font-size:12px;font-weight:500;}
+.tb-back:hover{border-color:var(--accent);color:var(--accent);}
+.tb-title{font-size:16px;font-weight:600;}
+.btn{padding:7px 14px;border-radius:6px;cursor:pointer;border:none;font-size:12px;font-weight:500;}
+.btn:hover{opacity:.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-ghost{background:var(--white);border:1px solid var(--border);color:var(--muted2);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-tab{padding:8px 16px;border-radius:6px 6px 0 0;cursor:pointer;border:1px solid var(--border);border-bottom:none;font-size:12px;font-weight:500;background:var(--bg);color:var(--muted2);margin-right:2px;}
+.btn-tab.on{background:var(--white);color:var(--accent);font-weight:600;}
+.main{padding-top:var(--top-h);}
+.tabs-bar{padding:12px 20px 0;background:var(--white);border-bottom:1px solid var(--border);}
+.page{max-width:1000px;margin:0 auto;padding:20px;}
+.card{background:var(--white);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.card-t{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.f-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.f-row label{font-size:9px;color:var(--muted);font-family:var(--mono);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.f-row input,.f-row select{padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);width:100%;}
+.f-row input:focus{border-color:var(--accent);outline:none;background:var(--white);}
+.pl-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.pl-row:last-child{border:none;}
+.pl-row.bold{font-weight:700;font-size:13px;padding:10px 0;border-top:2px solid var(--border);}
+.pl-row.indented{padding-left:16px;color:var(--muted2);}
+.pl-lbl{flex:1;}
+.pl-val{font-family:var(--mono);font-weight:500;text-align:right;min-width:100px;}
+.pl-ok{color:var(--green2);}
+.pl-bad{color:var(--red);}
+.pl-neutral{color:var(--muted2);}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.kc{background:var(--bg);border-radius:var(--r);padding:10px 12px;}
+.kc-n{font-size:18px;font-weight:700;font-family:var(--mono);}
+.kc-l{font-size:9px;color:var(--muted);margin-top:2px;}
+.inv-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.inv-row:last-child{border:none;}
+.inv-t{font-size:12px;font-weight:500;flex:1;}
+.inv-inp{width:120px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:var(--mono);background:var(--bg);}
+.inv-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-family:var(--mono);font-weight:600;background:#FFEDD5;color:#c2410c;}
+.tab-content{display:none;}
+.tab-content.on{display:block;}
+.scen-card{border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;transition:border-color .12s;}
+.scen-card:hover{border-color:var(--accent);}
+.scen-t{font-size:13px;font-weight:600;margin-bottom:4px;}
+.scen-sub{font-size:11px;color:var(--muted2);margin-bottom:8px;}
+.scen-res{font-family:var(--mono);font-size:12px;}
+@media(max-width:768px){.grid2{grid-template-columns:1fr;}.kpi-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="tb-back" onclick="window.location='index.html'">← Accueil</button>
+  <div class="tb-title">Simulateur P&L</div>
+  <div style="margin-left:auto;display:flex;gap:8px;">
+    <button class="btn btn-ghost btn-sm" onclick="plSave()">💾 Sauvegarder</button>
+    <button class="btn btn-primary btn-sm" onclick="window.print()">📄 Rapport</button>
+  </div>
+</div>
+
+<div class="main">
+<div class="tabs-bar">
+  <button class="btn-tab on" onclick="plTab('budget',this)">Budget</button>
+  <button class="btn-tab" onclick="plTab('realise',this)">Réalisé</button>
+  <button class="btn-tab" onclick="plTab('seuil',this)">Seuil rentabilité</button>
+  <button class="btn-tab" onclick="plTab('scenarios',this)">Scénarios</button>
+  <button class="btn-tab" onclick="plTab('investissements',this)">Investissements</button>
+</div>
+
+<div class="page">
+
+<!-- ONGLET BUDGET -->
+<div class="tab-content on" id="tab-budget">
+  <div class="card">
+    <div class="card-t">Budget annuel — Paramètres</div>
+    <div class="grid3">
+      <div class="f-row"><label>Nb ETP objectif / mois</label><input type="number" id="b-etp" step="0.5" placeholder="10" oninput="plCalc()"/></div>
+      <div class="f-row"><label>TC moyen objectif (€/h)</label><input type="number" id="b-tc" step="0.5" placeholder="34" oninput="plCalc()"/></div>
+      <div class="f-row"><label>TB moyen (€/h)</label><input type="number" id="b-tb" step="0.5" placeholder="15.5" oninput="plCalc()"/></div>
+      <div class="f-row"><label>H semaine</label><input type="number" id="b-h" step="0.5" placeholder="35" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Loyer + charges (€/mois)</label><input type="number" id="b-loyer" placeholder="2500" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Salaires permanents (€/mois)</label><input type="number" id="b-salaires" placeholder="4500" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Redevance réseau (€/mois)</label><input type="number" id="b-redevance" placeholder="2000" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Téléphonie + informatique</label><input type="number" id="b-info" placeholder="300" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Déplacements (€/mois)</label><input type="number" id="b-dep" placeholder="500" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Job boards + sourcing</label><input type="number" id="b-jb" placeholder="400" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Assurances</label><input type="number" id="b-assur" placeholder="200" oninput="plCalc()"/></div>
+      <div class="f-row"><label>Divers</label><input type="number" id="b-div" placeholder="300" oninput="plCalc()"/></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-t">Compte de résultat prévisionnel mensuel</div>
+    <div class="kpi-row" id="kpi-budget"></div>
+    <div id="pl-budget-result"></div>
+  </div>
+</div>
+
+<!-- ONGLET RÉALISÉ -->
+<div class="tab-content" id="tab-realise">
+  <div class="card">
+    <div class="card-t">Réalisé — Saisie mensuelle</div>
+    <div class="grid2">
+      <div class="f-row"><label>ETP actifs ce mois (réel)</label><input type="number" id="r-etp" step="0.5" oninput="realCalc()"/></div>
+      <div class="f-row"><label>CA réel facturé (€)</label><input type="number" id="r-ca" oninput="realCalc()"/></div>
+      <div class="f-row"><label>Marge brute réelle (€)</label><input type="number" id="r-mb" oninput="realCalc()"/></div>
+      <div class="f-row"><label>Frais fixes réels (€)</label><input type="number" id="r-ff" oninput="realCalc()"/></div>
+    </div>
+    <div id="pl-real-result"></div>
+  </div>
+</div>
+
+<!-- ONGLET SEUIL -->
+<div class="tab-content" id="tab-seuil">
+  <div class="card">
+    <div class="card-t">Calcul du seuil de rentabilité</div>
+    <div id="seuil-result"></div>
+  </div>
+</div>
+
+<!-- ONGLET SCÉNARIOS -->
+<div class="tab-content" id="tab-scenarios">
+  <div class="card">
+    <div class="card-t">Simulateur de scénarios</div>
+    <div class="grid2" style="margin-bottom:14px;">
+      <div class="f-row"><label>ETP supplémentaires simulés</label><input type="number" id="sc-etp" value="2" step="0.5" oninput="scenCalc()"/></div>
+      <div class="f-row"><label>Variation TC (% hausse/baisse)</label><input type="number" id="sc-tc-var" value="0" step="1" oninput="scenCalc()"/></div>
+      <div class="f-row"><label>Variation frais fixes (€/mois)</label><input type="number" id="sc-ff-var" value="0" oninput="scenCalc()"/></div>
+      <div class="f-row"><label>Mois de simulation</label>
+        <select id="sc-mois" onchange="scenCalc()">
+          <option value="1">1 mois</option><option value="3">3 mois</option>
+          <option value="6" selected>6 mois</option><option value="12">12 mois (annuel)</option>
+        </select></div>
+    </div>
+    <div id="scen-result"></div>
+  </div>
+</div>
+
+<!-- ONGLET INVESTISSEMENTS -->
+<div class="tab-content" id="tab-investissements">
+  <div class="card">
+    <div class="card-t">Planificateur d'investissements futurs</div>
+    <div id="inv-list">
+      <div class="inv-row">
+        <div style="flex:1">
+          <div class="inv-t">+ Ajouter un investissement</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="invAdd()">+ Ajouter</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <div id="inv-impact" style="font-family:var(--mono);font-size:12px;color:var(--muted2)">Aucun investissement planifié</div>
+    </div>
+  </div>
+
+  <!-- Formulaire ajout investissement -->
+  <div class="card" id="inv-form" style="display:none;border:2px solid var(--accent);">
+    <div class="card-t">Nouvel investissement</div>
+    <div class="grid2">
+      <div class="f-row"><label>Type</label>
+        <select id="inv-type" onchange="invTypeChange()">
+          <option value="embauche">Embauche salarié</option>
+          <option value="materiel">Achat matériel</option>
+          <option value="formation">Budget formation</option>
+          <option value="abonnement">Abonnement / logiciel</option>
+        </select></div>
+      <div class="f-row"><label>Libellé</label><input type="text" id="inv-label" placeholder="ex: Assistante commerciale"/></div>
+      <div class="f-row" id="inv-f-salaire"><label>Salaire brut mensuel (€)</label><input type="number" id="inv-salaire" placeholder="2000" oninput="invPreview()"/></div>
+      <div class="f-row" id="inv-f-montant" style="display:none"><label>Montant (€)</label><input type="number" id="inv-montant" oninput="invPreview()"/></div>
+      <div class="f-row"><label>Date de début</label><input type="date" id="inv-date"/></div>
+      <div class="f-row" id="inv-f-amort"><label>Amortissement (mois)</label><input type="number" id="inv-amort" value="36"/></div>
+    </div>
+    <div id="inv-preview" style="background:var(--bg);border-radius:var(--r);padding:10px;font-family:var(--mono);font-size:12px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('inv-form').style.display='none'">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="invSave()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+</div><!-- /main -->
+
+<script>
+var plData = {};
+var investments = [];
+try{ plData=JSON.parse(localStorage.getItem('jtp_pl')||'{}'); }catch(e){}
+try{ investments=JSON.parse(localStorage.getItem('jtp_investissements')||'[]'); }catch(e){}
+
+function g(id){ return parseFloat((document.getElementById(id)||{}).value)||0; }
+function fmtK(n){ if(!n) return '0€'; n=Math.round(n); return n>=10000?Math.round(n/100)/10+'k€':n.toLocaleString('fr-FR')+'€'; }
+function fmtKM(n){ return (n>=0?'+':'')+fmtK(n); }
+function plTab(tab,btn){
+  document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('on'); });
+  document.querySelectorAll('.btn-tab').forEach(function(el){ el.classList.remove('on'); });
+  document.getElementById('tab-'+tab).classList.add('on');
+  btn.classList.add('on');
+  plCalc();
+}
+
+function plCalc(){
+  var etp  = g('b-etp')||10;
+  var tc   = g('b-tc')||34;
+  var tb   = g('b-tb')||15.5;
+  var h    = g('b-h')||35;
+  var hM   = h*47/12;
+  var loyer= g('b-loyer')||2500;
+  var sal  = g('b-salaires')||4500;
+  var red  = g('b-redevance')||2000;
+  var info = g('b-info')||300;
+  var dep  = g('b-dep')||500;
+  var jb   = g('b-jb')||400;
+  var assur= g('b-assur')||200;
+  var div  = g('b-div')||300;
+
+  var ca   = etp*hM*tc;
+  var ms   = etp*hM*tb*(1+0.43+0.10+0.11);
+  var mb   = ca-ms;
+  var mbPct= ca>0?Math.round(mb/ca*1000)/10:0;
+  var ff   = loyer+sal+red+info+dep+jb+assur+div;
+  var rbe  = mb-ff;
+
+  // Investissements planifiés ce mois
+  var invFF = 0;
+  investments.forEach(function(inv){
+    if(inv.type==='embauche') invFF+=parseFloat(inv.cout_mensuel)||0;
+    else if(inv.type==='abonnement') invFF+=parseFloat(inv.montant)||0;
+    else if(inv.montant && inv.amort) invFF+=parseFloat(inv.montant)/parseFloat(inv.amort);
+  });
+  var ffTotal = ff + invFF;
+  var rbeAdj = mb - ffTotal;
+
+  // KPI
+  var kpis=[
+    {n:fmtK(ca),l:'CA estimé/mois',c:'var(--accent)'},
+    {n:fmtK(mb),l:'Marge brute ('+mbPct+'%)',c:mbPct>=18?'var(--green)':'var(--amber)'},
+    {n:fmtK(ffTotal),l:'Frais fixes totaux',c:'var(--muted2)'},
+    {n:fmtKM(rbeAdj),l:'RBE estimé',c:rbeAdj>0?'var(--green2)':'var(--red)'},
+  ];
+  var ke=document.getElementById('kpi-budget');
+  if(ke) ke.innerHTML=kpis.map(function(k){ return '<div class="kc"><div class="kc-n" style="color:'+k.c+'">'+k.n+'</div><div class="kc-l">'+k.l+'</div></div>'; }).join('');
+
+  // P&L
+  var rows=[
+    {l:'Chiffre d\'affaires brut',v:fmtK(ca),cls:'bold'},
+    {l:'Masse salariale intérimaires',v:'-'+fmtK(ms),cls:'indented pl-bad'},
+    {l:'MARGE BRUTE',v:fmtK(mb)+' ('+mbPct+'%)',cls:'bold '+(mbPct>=18?'pl-ok':mbPct>=12?'':' pl-bad')},
+    {l:'',v:''},
+    {l:'Frais de personnel permanents',v:'-'+fmtK(sal),cls:'indented pl-neutral'},
+    {l:'Loyer et charges locatives',v:'-'+fmtK(loyer),cls:'indented pl-neutral'},
+    {l:'Redevance réseau',v:'-'+fmtK(red),cls:'indented pl-neutral'},
+    {l:'Téléphonie + informatique',v:'-'+fmtK(info),cls:'indented pl-neutral'},
+    {l:'Déplacements et représentation',v:'-'+fmtK(dep),cls:'indented pl-neutral'},
+    {l:'Job boards + sourcing',v:'-'+fmtK(jb),cls:'indented pl-neutral'},
+    {l:'Assurances',v:'-'+fmtK(assur),cls:'indented pl-neutral'},
+    {l:'Divers',v:'-'+fmtK(div),cls:'indented pl-neutral'},
+    invFF>0?{l:'Investissements planifiés',v:'-'+fmtK(invFF),cls:'indented pl-neutral'}:{l:'',v:''},
+    {l:'Total frais fixes',v:fmtK(ffTotal),cls:'bold'},
+    {l:'RÉSULTAT BRUT D\'EXPLOITATION (RBE)',v:(rbeAdj>=0?'+':'')+fmtK(rbeAdj),cls:'bold '+(rbeAdj>0?'pl-ok':'pl-bad')},
+  ].filter(function(r){ return r.l||r.v; });
+
+  var re=document.getElementById('pl-budget-result');
+  if(re) re.innerHTML=rows.map(function(r){
+    return r.l||r.v?'<div class="pl-row '+(r.cls||'')+'"><span class="pl-lbl">'+r.l+'</span><span class="pl-val">'+r.v+'</span></div>':'<div style="height:8px"></div>';
+  }).join('');
+
+  // Seuil
+  var seuilETP = ff>0&&mb/etp>0 ? ff/(mb/etp) : 0;
+  var se=document.getElementById('seuil-result');
+  if(se) se.innerHTML='<div class="pl-row bold"><span class="pl-lbl">ETP nécessaires pour couvrir les frais fixes</span><span class="pl-val">'+seuilETP.toFixed(1)+' ETP</span></div>'
+    +'<div class="pl-row"><span class="pl-lbl">ETP actuels projetés</span><span class="pl-val">'+etp+'</span></div>'
+    +'<div class="pl-row"><span class="pl-lbl">Marge par ETP</span><span class="pl-val">'+fmtK(mb/etp)+'/mois</span></div>'
+    +'<div class="pl-row"><span class="pl-lbl">CA minimum pour atteindre le seuil</span><span class="pl-val">'+fmtK(ff/(mbPct/100))+'</span></div>'
+    +'<div class="pl-row bold '+(rbe>=0?'pl-ok':'pl-bad')+'"><span class="pl-lbl">Avec '+etp+' ETP — RBE projeté</span><span class="pl-val">'+(rbe>=0?'+':'')+fmtK(rbe)+'</span></div>';
+
+  realCalc();
+  scenCalc();
+}
+
+function realCalc(){
+  var rETP=g('r-etp'), rCA=g('r-ca'), rMB=g('r-mb'), rFF=g('r-ff');
+  var bETP=g('b-etp'), bCA=g('b-tc')*(g('b-h')*47/12)*g('b-etp');
+  var bFF=g('b-loyer')+g('b-salaires')+g('b-redevance')+g('b-info')+g('b-dep')+g('b-jb')+g('b-assur')+g('b-div');
+  var rRBE = rMB - (rFF||bFF);
+  var re=document.getElementById('pl-real-result');
+  if(!re) return;
+  var rows=[
+    {l:'ETP réels',v:rETP,b:bETP,u:''},
+    {l:'CA réel facturé',v:fmtK(rCA),b:fmtK(bCA),u:''},
+    {l:'Marge brute réelle',v:fmtK(rMB),b:rCA>0?Math.round(rMB/rCA*100)+'%':'-',u:''},
+    {l:'Frais fixes',v:fmtK(rFF||bFF),b:fmtK(bFF),u:''},
+    {l:'RBE',v:(rRBE>=0?'+':'')+fmtK(rRBE),b:'',u:''},
+  ];
+  re.innerHTML='<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:0;padding:6px 0;background:var(--bg);border-radius:6px;margin-bottom:8px;">'
+    +'<div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);padding:0 10px;">LIGNE</div>'
+    +'<div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right;padding:0 10px;">RÉALISÉ</div>'
+    +'<div style="font-size:9px;font-weight:700;color:var(--muted);font-family:var(--mono);text-align:right;padding:0 10px;">BUDGET</div>'
+    +'</div>'
+    +rows.map(function(r){
+      return '<div class="pl-row"><span class="pl-lbl">'+r.l+'</span><span class="pl-val" style="color:var(--text)">'+r.v+'</span><span class="pl-val" style="color:var(--muted)">'+r.b+'</span></div>';
+    }).join('');
+}
+
+function scenCalc(){
+  var el=document.getElementById('scen-result'); if(!el) return;
+  var etp  = g('b-etp')||10;
+  var tc   = g('b-tc')||34;
+  var tb   = g('b-tb')||15.5;
+  var h    = g('b-h')||35;
+  var hM   = h*47/12;
+  var ff   = (g('b-loyer')||2500)+(g('b-salaires')||4500)+(g('b-redevance')||2000)+(g('b-info')||300)+(g('b-dep')||500)+(g('b-jb')||400)+(g('b-assur')||200)+(g('b-div')||300);
+  var scETP=g('sc-etp')||2;
+  var scTCv=g('sc-tc-var')||0;
+  var scFFv=g('sc-ff-var')||0;
+  var mois =parseInt((document.getElementById('sc-mois')||{}).value)||6;
+
+  var tc2 = tc*(1+scTCv/100);
+  var etp2 = etp+scETP;
+  var ff2  = ff+scFFv;
+  var ca2  = etp2*hM*tc2;
+  var ms2  = etp2*hM*tb*1.64;
+  var mb2  = ca2-ms2;
+  var rbe2 = mb2-ff2;
+
+  var caBase = etp*hM*tc;
+  var msBase = etp*hM*tb*1.64;
+  var mbBase = caBase-msBase;
+  var rbeBase = mbBase-ff;
+
+  var scenarios=[
+    {t:'Situation actuelle (budget)', sub:etp+' ETP à '+tc+'€/h', ca:caBase, mb:mbBase, rbe:rbeBase, ff:ff},
+    {t:'Scénario simulé', sub:etp2+' ETP à '+tc2.toFixed(2)+'€/h', ca:ca2, mb:mb2, rbe:rbe2, ff:ff2},
+    {t:'Gain projeté sur '+mois+' mois', sub:'Delta RBE', ca:(ca2-caBase)*mois, mb:(mb2-mbBase)*mois, rbe:(rbe2-rbeBase)*mois, ff:(ff2-ff)*mois, delta:true},
+  ];
+
+  el.innerHTML=scenarios.map(function(s){
+    var col=s.delta?(s.rbe>=0?'var(--green2)':'var(--red)'):(s.rbe>=0?'var(--green2)':'var(--red)');
+    return '<div class="scen-card"><div class="scen-t">'+s.t+'</div><div class="scen-sub">'+s.sub+'</div>'
+      +'<div class="scen-res">'
+      +(s.delta?'':('CA : '+fmtK(s.ca)+' | MB : '+fmtK(s.mb)))
+      +'<span style="color:'+col+';margin-left:12px;">'+(s.delta?'Delta':'RBE')+' : '+(s.rbe>=0&&s.delta?'+':'')+fmtK(s.rbe)+'</span>'
+      +'</div></div>';
+  }).join('');
+}
+
+// Investissements
+function invAdd(){ document.getElementById('inv-form').style.display='block'; invTypeChange(); }
+function invTypeChange(){
+  var t=(document.getElementById('inv-type')||{}).value;
+  document.getElementById('inv-f-salaire').style.display=t==='embauche'?'flex':'none';
+  document.getElementById('inv-f-montant').style.display=t==='embauche'?'none':'flex';
+  document.getElementById('inv-f-amort').style.display=(t==='materiel')?'flex':'none';
+  invPreview();
+}
+function invPreview(){
+  var t=(document.getElementById('inv-type')||{}).value;
+  var sal=g('inv-salaire'), mont=g('inv-montant'), amort=g('inv-amort')||36;
+  var cout=0;
+  if(t==='embauche') cout=sal*1.43;
+  else if(t==='materiel') cout=mont/amort;
+  else if(t==='formation') cout=mont; // one-shot
+  else if(t==='abonnement') cout=mont;
+  var el=document.getElementById('inv-preview');
+  if(el) el.innerHTML=cout>0?'Coût mensuel estimé : <strong>'+fmtK(cout)+'</strong>'+(t==='formation'?' (one-shot)':'/mois')+'<br>ETP supplémentaires nécessaires : <strong>'+Math.ceil(cout/300)+'</strong> (à marge ~300€/ETP)':'';
+}
+function invSave(){
+  var t=(document.getElementById('inv-type')||{}).value;
+  var lbl=(document.getElementById('inv-label')||{}).value||'Investissement';
+  var sal=g('inv-salaire'), mont=g('inv-montant'), amort=g('inv-amort')||36;
+  var date=(document.getElementById('inv-date')||{}).value||new Date().toISOString().slice(0,10);
+  var cout=0;
+  if(t==='embauche') cout=sal*1.43;
+  else if(t==='materiel') cout=mont/amort;
+  else cout=mont;
+  investments.push({type:t,label:lbl,salaire:sal,montant:mont,amort:amort,date:date,cout_mensuel:cout});
+  localStorage.setItem('jtp_investissements',JSON.stringify(investments));
+  document.getElementById('inv-form').style.display='none';
+  invRender(); plCalc();
+}
+function invRender(){
+  var el=document.getElementById('inv-list'); if(!el) return;
+  var rows=investments.map(function(inv,i){
+    return '<div class="inv-row"><div class="inv-t">'+inv.label+'<div style="font-size:10px;color:var(--muted)">'+inv.type+' — Dès '+inv.date+'</div></div>'
+      +'<span class="inv-badge">'+fmtK(inv.cout_mensuel)+'/mois</span>'
+      +'<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="invDel('+i+')">×</button>'
+      +'</div>';
+  }).join('');
+  var total=investments.reduce(function(s,inv){ return s+(inv.cout_mensuel||0); },0);
+  el.innerHTML=(rows||'<div style="font-size:11px;color:var(--muted);padding:8px 0">Aucun investissement planifié</div>')
+    +'<div class="inv-row"><div class="inv-t" style="font-weight:600">Total frais supplémentaires</div>'
+    +'<span class="inv-badge" style="background:#EFF6FF;color:#1d4ed8;">'+fmtK(total)+'/mois</span>'
+    +'<button class="btn btn-primary btn-sm" onclick="invAdd()">+ Ajouter</button></div>';
+  var imp=document.getElementById('inv-impact');
+  if(imp) imp.innerHTML=total>0?'Impact : FF augmentent de <strong>'+fmtK(total)+'</strong>/mois → seuil de rentabilité passe à <strong>'+(((g('b-loyer')||2500)+(g('b-salaires')||4500)+(g('b-redevance')||2000)+(g('b-info')||300)+(g('b-dep')||500)+(g('b-jb')||400)+(g('b-assur')||200)+(g('b-div')||300)+total)/300).toFixed(1)+'</strong> ETP':'Aucun investissement planifié';
+}
+function invDel(i){ investments.splice(i,1); localStorage.setItem('jtp_investissements',JSON.stringify(investments)); invRender(); plCalc(); }
+
+function plSave(){
+  var data={};
+  ['b-etp','b-tc','b-tb','b-h','b-loyer','b-salaires','b-redevance','b-info','b-dep','b-jb','b-assur','b-div'].forEach(function(id){
+    var el=document.getElementById(id); if(el) data[id]=el.value;
+  });
+  localStorage.setItem('jtp_pl',JSON.stringify(data));
+  alert('Budget sauvegardé');
+}
+
+// Charger données sauvegardées
+Object.keys(plData).forEach(function(id){
+  var el=document.getElementById(id); if(el) el.value=plData[id];
+});
+// Charger depuis tdb_cfg si pas de données pl
+if(!Object.keys(plData).length){
+  var tdb={}; try{ tdb=JSON.parse(localStorage.getItem('tdb_cfg')||'{}'); }catch(e){}
+  if(tdb.tc) { var el=document.getElementById('b-tc'); if(el) el.value=tdb.tc; }
+  if(tdb.tb) { var el=document.getElementById('b-tb'); if(el) el.value=tdb.tb; }
+  if(tdb.h)  { var el=document.getElementById('b-h');  if(el) el.value=tdb.h;  }
+  if(tdb.ff) {
+    var ff=parseFloat(tdb.ff)||12000;
+    var el=document.getElementById('b-loyer'); if(el) el.value=Math.round(ff*0.21);
+    var el2=document.getElementById('b-salaires'); if(el2) el2.value=Math.round(ff*0.375);
+    var el3=document.getElementById('b-redevance'); if(el3) el3.value=Math.round(ff*0.167);
+  }
+}
+invRender();
+plCalc();
+</script>
+</body>
+</html>
