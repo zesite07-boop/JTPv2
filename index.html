@@ -800,19 +800,6 @@ button,input,select,textarea{
 .chip-funnel{background:#EFF6FF;color:var(--blue);border-color:#bfdbfe;}
 
 
-/* Module iframe — prend toute la zone main */
-#module-iframe {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: var(--bg);
-}
-.main {
-  position: relative;
-}
-
 </style>
 </head>
 <body>
@@ -1159,85 +1146,68 @@ var COLORS = {
 function navigateTo(mod) {
   loadAll();
 
-  // Mise à jour nav active
+  // Mise à jour état actif nav
   document.querySelectorAll('.nav-item').forEach(function(el){
     el.classList.toggle('active', el.dataset.mod === mod);
   });
-  document.getElementById('topbar-title').textContent = TITLES[mod] || mod;
   navClose();
 
   var main = document.getElementById('main');
   var crmNative = document.getElementById('crm-native');
   var todayView = document.getElementById('today-view');
 
-  // Masquer le CRM natif par défaut
+  // Masquer iframe si existante
+  var iframeEl = document.getElementById('module-iframe');
+  if(iframeEl) iframeEl.remove();
+
+  // Masquer CRM natif
   if(crmNative) crmNative.classList.remove('crm-on');
 
-  // Modules natifs (inline dans main)
+  // Modules natifs dans le shell
   if(mod === 'today') {
-    if(todayView) todayView.style.display = 'block';
-    // Vider les iframes précédentes
-    var existing = document.getElementById('module-iframe');
-    if(existing) existing.remove();
-    // Remettre le today-view si besoin
     if(!document.getElementById('today-view')) {
-      main.insertAdjacentHTML('afterbegin', '<div id="today-view"></div>');
+      main.insertAdjacentHTML('afterbegin','<div id="today-view"></div>');
     }
     document.getElementById('today-view').style.display = 'block';
+    document.getElementById('topbar-title').textContent = 'Aujourd\'hui';
     renderToday();
+    refreshBadges();
     return;
   }
 
   if(mod === 'crm') {
     if(todayView) todayView.style.display = 'none';
-    var existing = document.getElementById('module-iframe');
-    if(existing) existing.remove();
     if(crmNative) {
       crmNative.classList.add('crm-on');
       crmRenderBoard();
     }
+    document.getElementById('topbar-title').textContent = 'CRM Prospection';
+    refreshBadges();
     return;
   }
 
-  // Modules séparés → iframe (nav reste visible)
-  if(todayView) todayView.style.display = 'none';
-  if(crmNative) crmNative.classList.remove('crm-on');
-
-  // Supprimer l'iframe précédente
-  var existing = document.getElementById('module-iframe');
-  if(existing) existing.remove();
-
-  // Fichier cible
+  // Tous les autres modules → page standalone
   var MODULE_FILES = {
-    candidats: 'candidats_v2.html',
-    missions:  'missions_v2.html',
-    tdb:       'tdb_v2.html',
-    marge:     'marge_v2.html',
-    pl:        'pl_v2.html',
-    radar:     'radar_v2.html',
-    refs:      'refs_v2.html',
-    parametres:'parametres_v2.html',
+    candidats:    'candidats_v2.html',
+    missions:     'missions_v2.html',
+    tdb:          'tdb_v2.html',
+    marge:        'marge_v2.html',
+    pl:           'pl_v2.html',
+    radar:        'radar_v2.html',
+    refs:         'refs_v2.html',
+    juridique:    'refs_v2.html',
+    objections:   'refs_v2.html',
+    rome:         'refs_v2.html',
+    'marge-guide':'refs_v2.html',
+    parametres:   'parametres_v2.html',
   };
 
   var file = MODULE_FILES[mod];
-  if(!file) {
-    // Module inconnu — placeholder
-    main.innerHTML = '<div class="module-ph">'
-      + '<div class="module-ph-icon" style="background:var(--bg);color:var(--muted)">&#9881;</div>'
-      + '<div style="font-weight:600;color:var(--text2)">'+(TITLES[mod]||mod)+'</div>'
-      + '</div>';
-    return;
+  if(file) {
+    window.location = file;
   }
-
-  // Créer l'iframe
-  var iframe = document.createElement('iframe');
-  iframe.id = 'module-iframe';
-  iframe.src = file;
-  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;background:var(--bg);';
-  main.appendChild(iframe);
-
-  refreshBadges();
 }
+
 
 
 // ═══════════════════════════════════════════════════════
