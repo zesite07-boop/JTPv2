@@ -450,6 +450,7 @@ button,input,select,textarea{
 ═══════════════════════════════════════ */
 @media(max-width:768px){
   :root{--nav-w:0px;}
+  .crm-wrap{left:0;}
   .nav{
     transform:translateX(-224px);
     width:224px;
@@ -485,7 +486,11 @@ button,input,select,textarea{
 /* ═══════════════════════════════════════
    CRM MODULE
 ═══════════════════════════════════════ */
-.crm-wrap{display:none;flex-direction:column;height:100%;}
+.crm-wrap{
+  display:none;flex-direction:column;
+  position:fixed;top:var(--top-h);left:var(--nav-w);right:0;bottom:0;
+  background:var(--bg);
+}
 .crm-wrap.crm-on{display:flex;}
 
 /* Toolbar */
@@ -933,6 +938,7 @@ button,input,select,textarea{
     <div class="crm-chips">
       <button class="chip on" data-v="" onclick="crmSetChip(this)">TOUS</button>
       <button class="chip" data-v="froid" onclick="crmSetChip(this)">FROID</button>
+      <button class="chip" data-v="prospect" onclick="crmSetChip(this)">PROSPECT</button>
       <button class="chip" data-v="tiede" onclick="crmSetChip(this)">TIÈDE</button>
       <button class="chip" data-v="chaud" onclick="crmSetChip(this)">CHAUD</button>
       <button class="chip" data-v="client" onclick="crmSetChip(this)">CLIENT</button>
@@ -1753,11 +1759,13 @@ document.addEventListener('keydown', function(e){
 var QUALIFS_CRM_FAMILLES = {"GROS OEUVRE": ["Macon", "Macon VRD", "Macon Finisseur", "Coffreur-Bancheur", "Ferrailleur", "Charpentier Bois", "Charpentier Metallique", "Couvreur", "Etancheur", "Demolisseur"], "SECOND OEUVRE": ["Plaquiste", "Platrerie / Staff", "Staffeur / Stuqueur", "Peintre en batiment", "Facadier", "Solier / Moquettiste", "Carreleur", "Menuisier Poseur", "Menuisier Atelier", "Serrurier / Metallier", "Calorifugeur", "Echafaudeur"], "CVC / PLOMBERIE": ["Technicien CVC", "Chauffagiste", "Plombier Sanitaire", "Installateur CVC", "Technicien Frigoriste", "Technicien Maintenance Batiment"], "ELECTRICITE": ["Electricien CFO", "Electricien CFA", "Tireur de Cables", "Technicien Automatisme"], "ENGINS / LEVAGE": ["Conducteur Engins (CACES R482)", "Grutier (CACES R487)", "Conducteur Grue Mobile", "Conducteur Nacelle (PEMP)", "Mecanicien Engins Chantier", "Cariste (CACES R489)"], "TRAVAUX PUBLICS": ["Canalisateur", "Asphalteur", "Poseur de Bordures", "Ouvrier VRD"], "ENCADREMENT": ["Chef de Chantier", "Conducteur de Travaux", "Chef Equipe", "Animateur QSE"], "BUREAU D'ETUDES": ["Dessinateur Projeteur", "Metreuse / Economiste", "Ingenieur CVC", "Operateur Topographe", "Responsable QSE"]};
 
 var CRM_STATUS = {
-  froid:  {l:'FROID',  cls:'cb-froid'},
-  tiede:  {l:'TIÈDE',  cls:'cb-tiede'},
-  chaud:  {l:'CHAUD',  cls:'cb-chaud'},
-  client: {l:'CLIENT', cls:'cb-client'},
-  veille: {l:'VEILLE', cls:'cb-veille'}
+  froid:    {l:'FROID',    cls:'cb-froid'},
+  prospect: {l:'PROSPECT', cls:'cb-froid'},
+  tiede:    {l:'TIÈDE',    cls:'cb-tiede'},
+  chaud:    {l:'CHAUD',    cls:'cb-chaud'},
+  client:   {l:'CLIENT',   cls:'cb-client'},
+  veille:   {l:'VEILLE',   cls:'cb-veille'},
+  contact:  {l:'CONTACT',  cls:'cb-tiede'},
 };
 var CRM_JTYPES = {
   appel:   {l:'APPEL',   cls:'jt-appel'},
