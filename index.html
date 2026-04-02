@@ -799,6 +799,20 @@ button,input,select,textarea{
 /* Entonnoir dans topbar chips */
 .chip-funnel{background:#EFF6FF;color:var(--blue);border-color:#bfdbfe;}
 
+
+/* Module iframe — prend toute la zone main */
+#module-iframe {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--bg);
+}
+.main {
+  position: relative;
+}
+
 </style>
 </head>
 <body>
@@ -824,7 +838,7 @@ button,input,select,textarea{
     Aujourd'hui
     <span class="nav-badge nb-red" id="badge-today">—</span>
   </div>
-  <div class="nav-item" data-mod="tdb" onclick="window.location=\'tdb_v2.html\'">
+  <div class="nav-item" data-mod="tdb" onclick="navigateTo('tdb')">
     <div class="nav-dot" style="background:var(--blue)"></div>
     Tableau de Bord
   </div>
@@ -833,51 +847,51 @@ button,input,select,textarea{
     CRM Prospection
     <span class="nav-badge nb-orange" id="badge-crm">—</span>
   </div>
-  <div class="nav-item" data-mod="candidats" onclick="window.location=\'candidats_v2.html\'">
+  <div class="nav-item" data-mod="candidats" onclick="navigateTo('candidats')">
     <div class="nav-dot" style="background:var(--green)"></div>
     Candidats
     <span class="nav-badge nb-green" id="badge-cands">—</span>
   </div>
-  <div class="nav-item" data-mod="missions" onclick="window.location=\'missions_v2.html\'">
+  <div class="nav-item" data-mod="missions" onclick="navigateTo('missions')">
     <div class="nav-dot" style="background:var(--purple)"></div>
     Missions
     <span class="nav-badge nb-purple" id="badge-missions">—</span>
   </div>
-  <div class="nav-item" data-mod="marge" onclick="window.location='marge_v2.html'">
+  <div class="nav-item" data-mod="marge" onclick="navigateTo('marge')">
     <div class="nav-dot" style="background:var(--muted)"></div>
     Fiche Marge
   </div>
 
   <div class="nav-divider"></div>
   <div class="nav-section">Pilotage</div>
-  <div class="nav-item" data-mod="tdb" onclick="window.location=\'tdb_v2.html\'">
+  <div class="nav-item" data-mod="tdb" onclick="navigateTo('tdb')">
     <div class="nav-dot" style="background:var(--blue)"></div>
     Tableau de Bord RA
   </div>
-  <div class="nav-item" data-mod="pl" onclick="window.location='pl_v2.html'">
+  <div class="nav-item" data-mod="pl" onclick="navigateTo('pl')">
     <div class="nav-dot" style="background:var(--purple)"></div>
     Simulateur P&amp;L
   </div>
-  <div class="nav-item" data-mod="radar" onclick="window.location='radar_v2.html'">
+  <div class="nav-item" data-mod="radar" onclick="navigateTo('radar')">
     <div class="nav-dot" style="background:var(--cyan)"></div>
     Radar Opportunités
   </div>
 
   <div class="nav-divider"></div>
   <div class="nav-section">Référence</div>
-  <div class="nav-item" data-mod="juridique" onclick="window.location='refs_v2.html'">
+  <div class="nav-item" data-mod="juridique" onclick="navigateTo('refs')">
     <div class="nav-dot" style="background:var(--muted)"></div>
     Juridique
   </div>
-  <div class="nav-item" data-mod="objections" onclick="window.location='refs_v2.html'">
+  <div class="nav-item" data-mod="objections" onclick="navigateTo('refs')">
     <div class="nav-dot" style="background:var(--muted)"></div>
     Objections
   </div>
-  <div class="nav-item" data-mod="rome" onclick="window.location='refs_v2.html'">
+  <div class="nav-item" data-mod="rome" onclick="navigateTo('refs')">
     <div class="nav-dot" style="background:var(--muted)"></div>
     ROME BTP
   </div>
-  <div class="nav-item" data-mod="marge-guide" onclick="window.location='marge_guide_v2.html'">
+  <div class="nav-item" data-mod="marge-guide" onclick="navigateTo('refs')">
     <div class="nav-dot" style="background:var(--amber)"></div>
     Guide Marge
   </div>
@@ -888,7 +902,7 @@ button,input,select,textarea{
     <div class="nav-dot" style="background:var(--muted)"></div>
     Export JSON
   </div>
-  <div class="nav-item" data-mod="parametres" onclick="window.location='parametres_v2.html'">
+  <div class="nav-item" data-mod="parametres" onclick="navigateTo('parametres')">
     <div class="nav-dot" style="background:var(--muted)"></div>
     Paramètres
   </div>
@@ -1144,6 +1158,8 @@ var COLORS = {
 
 function navigateTo(mod) {
   loadAll();
+
+  // Mise à jour nav active
   document.querySelectorAll('.nav-item').forEach(function(el){
     el.classList.toggle('active', el.dataset.mod === mod);
   });
@@ -1151,30 +1167,78 @@ function navigateTo(mod) {
   navClose();
 
   var main = document.getElementById('main');
-
-  // CRM natif
   var crmNative = document.getElementById('crm-native');
+  var todayView = document.getElementById('today-view');
+
+  // Masquer le CRM natif par défaut
   if(crmNative) crmNative.classList.remove('crm-on');
 
-  if(mod === 'crm') {
-    // main ne change pas - juste activer le CRM
-    crmNative.classList.add('crm-on');
-    document.getElementById('today-view').style.display = 'none';
-    crmRenderBoard();
-  } else if(mod === 'today') {
+  // Modules natifs (inline dans main)
+  if(mod === 'today') {
+    if(todayView) todayView.style.display = 'block';
+    // Vider les iframes précédentes
+    var existing = document.getElementById('module-iframe');
+    if(existing) existing.remove();
+    // Remettre le today-view si besoin
+    if(!document.getElementById('today-view')) {
+      main.insertAdjacentHTML('afterbegin', '<div id="today-view"></div>');
+    }
     document.getElementById('today-view').style.display = 'block';
-    main.innerHTML = '<div id="today-view"></div>';
     renderToday();
-  } else {
-    var colors = COLORS[mod] || ['var(--muted)','var(--bg)'];
-    main.innerHTML = '<div class="module-ph">'
-      + '<div class="module-ph-icon" style="background:'+colors[1]+';color:'+colors[0]+'">&#9881;</div>'
-      + '<div style="font-weight:600;color:var(--text2)">'+(TITLES[mod]||mod)+'</div>'
-      + '<div style="color:var(--muted)">Module en construction</div>'
-      + '</div>';
+    return;
   }
+
+  if(mod === 'crm') {
+    if(todayView) todayView.style.display = 'none';
+    var existing = document.getElementById('module-iframe');
+    if(existing) existing.remove();
+    if(crmNative) {
+      crmNative.classList.add('crm-on');
+      crmRenderBoard();
+    }
+    return;
+  }
+
+  // Modules séparés → iframe (nav reste visible)
+  if(todayView) todayView.style.display = 'none';
+  if(crmNative) crmNative.classList.remove('crm-on');
+
+  // Supprimer l'iframe précédente
+  var existing = document.getElementById('module-iframe');
+  if(existing) existing.remove();
+
+  // Fichier cible
+  var MODULE_FILES = {
+    candidats: 'candidats_v2.html',
+    missions:  'missions_v2.html',
+    tdb:       'tdb_v2.html',
+    marge:     'marge_v2.html',
+    pl:        'pl_v2.html',
+    radar:     'radar_v2.html',
+    refs:      'refs_v2.html',
+    parametres:'parametres_v2.html',
+  };
+
+  var file = MODULE_FILES[mod];
+  if(!file) {
+    // Module inconnu — placeholder
+    main.innerHTML = '<div class="module-ph">'
+      + '<div class="module-ph-icon" style="background:var(--bg);color:var(--muted)">&#9881;</div>'
+      + '<div style="font-weight:600;color:var(--text2)">'+(TITLES[mod]||mod)+'</div>'
+      + '</div>';
+    return;
+  }
+
+  // Créer l'iframe
+  var iframe = document.createElement('iframe');
+  iframe.id = 'module-iframe';
+  iframe.src = file;
+  iframe.style.cssText = 'width:100%;height:100%;border:none;display:block;background:var(--bg);';
+  main.appendChild(iframe);
+
   refreshBadges();
 }
+
 
 // ═══════════════════════════════════════════════════════
 // BADGES ET CHIPS
