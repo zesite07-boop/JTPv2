@@ -721,6 +721,84 @@ button,input,select,textarea{
   .dr-j-add{grid-template-columns:1fr 1fr;}
 }
 
+
+/* Météo relation */
+.meteo-btns{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+.meteo-btn{padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:transparent;transition:all .12s;font-family:var(--mono);}
+.meteo-btn.on{font-weight:700;border-width:2px;}
+.mb-serein.on{background:#DCFCE7;border-color:var(--green);color:#15803d;}
+.mb-neutre.on{background:#F1F5F9;border-color:var(--muted);color:#475569;}
+.mb-reserve.on{background:#FEF3C7;border-color:var(--amber);color:#92400e;}
+.mb-tendu.on{background:#FEE2E2;border-color:var(--red);color:#dc2626;}
+.mb-froid.on{background:#EFF6FF;border-color:var(--blue);color:#1d4ed8;}
+
+/* Compte-rendu appel rapide (flottant) */
+#cr-float{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--white);border-radius:var(--r-lg);
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  border:2px solid var(--accent);
+  width:320px;z-index:500;
+  display:none;
+  flex-direction:column;
+}
+#cr-float.open{display:flex;}
+#cr-float-hd{
+  background:var(--accent);color:#fff;
+  padding:10px 14px;border-radius:var(--r-lg) var(--r-lg) 0 0;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;font-weight:600;
+}
+#cr-float-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.cr-f{display:flex;flex-direction:column;gap:3px;}
+.cr-f label{font-size:9px;color:var(--muted);font-family:var(--mono);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.cr-f select,.cr-f input,.cr-f textarea{
+  padding:6px 8px;border:1px solid var(--border);border-radius:6px;
+  font-size:12px;color:var(--text);background:var(--bg);width:100%;
+}
+.cr-f select:focus,.cr-f input:focus{border-color:var(--accent);outline:none;}
+#cr-float-fab{
+  position:fixed;bottom:20px;right:20px;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  border:none;cursor:pointer;font-size:20px;
+  box-shadow:0 4px 16px rgba(249,115,22,.5);
+  z-index:499;display:flex;align-items:center;justify-content:center;
+  transition:transform .2s;
+}
+#cr-float-fab:hover{transform:scale(1.1);}
+#cr-float-fab.hidden{display:none;}
+
+/* Signaux scoring conversationnel */
+.signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;}
+.signal-item{display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;padding:3px 6px;border-radius:4px;border:1px solid var(--border);}
+.signal-item.on-pos{background:#DCFCE7;border-color:#bbf7d0;color:#15803d;}
+.signal-item.on-neg{background:#FEE2E2;border-color:#fca5a5;color:#dc2626;}
+.signal-item input[type=checkbox]{width:12px;height:12px;flex-shrink:0;}
+
+/* Entonnoir pipeline */
+.funnel-wrap{display:flex;flex-direction:column;gap:4px;align-items:center;}
+.funnel-stage{display:flex;align-items:center;justify-content:space-between;border-radius:6px;padding:8px 14px;font-size:12px;width:100%;max-width:400px;transition:opacity .2s;}
+.fs-lbl{font-weight:500;}
+.fs-cnt{font-family:var(--mono);font-weight:700;font-size:14px;}
+.fs-pct{font-size:10px;color:rgba(255,255,255,.7);font-family:var(--mono);}
+
+/* Segmentation */
+.seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.seg-card{border:1px solid var(--border);border-radius:var(--r);padding:10px;cursor:pointer;transition:all .12s;}
+.seg-card:hover{border-color:var(--accent);}
+.seg-card.active{border-color:var(--accent);background:#FFF4EE;}
+.seg-t{font-size:11px;font-weight:600;}
+.seg-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.seg-cnt{font-size:16px;font-weight:700;font-family:var(--mono);margin-top:4px;}
+
+/* Prix négociés historique */
+.prix-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:var(--mono);}
+.prix-row:last-child{border:none;}
+
+/* Entonnoir dans topbar chips */
+.chip-funnel{background:#EFF6FF;color:var(--blue);border-color:#bfdbfe;}
+
 </style>
 </head>
 <body>
@@ -862,6 +940,7 @@ button,input,select,textarea{
     <span class="crm-count" id="crm-count"></span>
     <div style="margin-left:auto;display:flex;gap:6px;">
       <button class="btn btn-ghost btn-sm" onclick="crmExportJSON()">Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="crmToggleView()">📊 Entonnoir</button>
       <button class="btn btn-primary btn-sm" onclick="crmOpenModal()">+ Prospect</button>
     </div>
   </div>
@@ -1758,12 +1837,13 @@ function crmRenderDrawer(pid){
     + (p.metier?'<span>'+esc(p.metier)+'</span>':'')
     + (p.zone?'<span style="font-family:var(--mono)">'+esc(p.zone)+'</span>':'')
     + '</div>'
-    + '<div class="dr-acts">'
+    + crmFermetureAlert(p)    + '<div style="margin-bottom:8px;">'+crmMeteoHtml(pid, p.meteo||'neutre')+'</div>'    + '<div class="dr-acts">'
     + '<button class="dr-btn ok" data-pid="'+pid+'" onclick="crmOpenModal(this.dataset.pid)">✏ Modifier</button>'
     + (p.statut==='client'
         ? '<button class="dr-btn" data-pid="'+pid+'" onclick="crmSetStatut(this.dataset.pid,\'froid\')">↩ Prospect</button>'
         : '<button class="dr-btn gr" data-pid="'+pid+'" onclick="crmSetStatut(this.dataset.pid,\'client\')">⬆ Client</button>')
     + '<button class="dr-btn" data-pid="'+pid+'" onclick="crmOpenBesoinModal(this.dataset.pid)">+ Besoin</button>'
+    + '<button class="dr-btn" data-pid="'+pid+'" onclick="crmCalcArgPrix(this.dataset.pid)">💰 Arg. Prix</button>'
     + '<button class="dr-btn rd" data-pid="'+pid+'" onclick="crmDeleteProspect(this.dataset.pid)">Supprimer</button>'
     + '</div>'
     + '<div class="dr-na '+naBar+'">'
@@ -1824,7 +1904,8 @@ function crmRenderDrawer(pid){
       + '</div>';
   }).join('') || '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucune action enregistrée</div>';
 
-  jHtml += '<div class="dr-j-add">'
+  jHtml += crmScoringHtml(pid, (p.journal||[]).length)
+    + '<div class="dr-j-add">'
     + '<div class="dr-sf"><label>Type</label><select id="drj-t-'+pid+'">'
     + Object.keys(CRM_JTYPES).map(function(k){ return '<option value="'+k+'">'+CRM_JTYPES[k].l+'</option>'; }).join('')
     + '</select></div>'
@@ -1854,7 +1935,8 @@ function crmRenderDrawer(pid){
       + ((b.cvs||[]).length?'<p style="font-size:11px;color:var(--muted2);margin-top:4px">'+b.cvs.length+' CV envoyé'+(b.cvs.length>1?'s':'')+'</p>':'')
       + '<div style="display:flex;gap:5px;margin-top:6px;">'      + '<button class="dr-btn" data-pid="'+pid+'" data-qualif="'+esc(b.qualif)+'" onclick="event.stopPropagation();crmTrouverProfil(this.dataset.qualif)">🔍 Trouver profil</button>'      + '</div>'      + '</div></div>';  }).join('') || '<div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Aucun besoin</div>';
 
-  bHtml += '<button class="dr-btn" style="margin-top:8px;width:100%;" data-pid="'+pid+'" onclick="crmOpenBesoinModal(this.dataset.pid)">+ Ajouter un besoin</button>';
+  bHtml += '<button class="dr-btn" style="margin-top:8px;width:100%;" data-pid="'+pid+'" onclick="crmOpenBesoinModal(this.dataset.pid)">+ Ajouter un besoin</button>'
+    + crmBesoinChecklistHtml();
   bd += crmDrSect('Besoins', besoins.length+' besoin'+(besoins.length!==1?'s':''), false, bHtml);
 
   // Section Opportunités — profils dispo correspondants
@@ -1880,6 +1962,11 @@ function crmRenderDrawer(pid){
         +'</div>';
     }).join('');
     bd += crmDrSect('Profils disponibles correspondants', oppCands.length+' candidat'+(oppCands.length>1?'s':''), true, oppHtml);
+  }
+
+  // Historique prix négociés
+  if(p.prix_negocie && p.prix_negocie.length) {
+    bd += crmDrSect('Prix négociés', p.prix_negocie.length+' entrée'+(p.prix_negocie.length>1?'s':''), false, crmPrixHistoHtml(p));
   }
 
   bd += '</div>';
@@ -2126,8 +2213,487 @@ function checkDailyNotifs() {
   }
 }
 
+
+// ═══════════════════════════════════════════════════════
+// CRM — FONCTIONS MANQUANTES
+// ═══════════════════════════════════════════════════════
+
+// ── MÉTÉO RELATION ───────────────────────────────────────────
+var METEO_MAP = {
+  serein: {l:'☀ Serein',   cls:'mb-serein'},
+  neutre: {l:'🌤 Neutre',  cls:'mb-neutre'},
+  reserve:{l:'⛅ Réservé', cls:'mb-reserve'},
+  tendu:  {l:'🌧 Tendu',   cls:'mb-tendu'},
+  froid2: {l:'❄ Froid',    cls:'mb-froid'},
+};
+
+function crmMeteoHtml(pid, current) {
+  return '<div class="meteo-btns">'
+    + Object.keys(METEO_MAP).map(function(k) {
+        var m = METEO_MAP[k];
+        var on = current === k ? ' on ' + m.cls : '';
+        return '<button class="meteo-btn' + on + '" data-pid="' + pid + '" data-meteo="' + k + '" onclick="crmSetMeteo(this.dataset.pid,this.dataset.meteo)">' + m.l + '</button>';
+      }).join('')
+    + '</div>';
+}
+
+function crmSetMeteo(pid, meteo) {
+  var p = crmDB.find(function(x) { return x.id === pid; }); if(!p) return;
+  p.meteo = meteo; crmSave();
+  var wrap = document.querySelector('.meteo-btns');
+  if(wrap) wrap.outerHTML = crmMeteoHtml(pid, meteo);
+}
+
+// ── SCORING CONVERSATIONNEL ───────────────────────────────────
+var SIGNAUX_POS = [
+  'Mentionné un chantier précis',
+  'Demandé les délais de mise à disposition',
+  'Demandé une propale',
+  'Évoqué un besoin futur',
+  'Posé des questions sur les profils',
+];
+var SIGNAUX_NEG = [
+  'A raccroché rapidement',
+  'Contrat exclusif concurrent',
+  'Pas de besoin — sans date',
+  'Ton défensif',
+  'Messagerie uniquement',
+];
+
+function crmScoringHtml(pid, entry_idx) {
+  var eid = 'sc_' + pid + '_' + entry_idx;
+  return '<div style="margin-top:8px;">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--green2);font-family:var(--mono);margin-bottom:4px;">SIGNAUX POSITIFS</div>'
+    + '<div class="signal-grid">'
+    + SIGNAUX_POS.map(function(s, i) {
+        return '<label class="signal-item" id="' + eid + '_p' + i + '" onclick="crmSignalToggle(this)">'
+          + '<input type="checkbox" style="pointer-events:none"/> ' + s + '</label>';
+      }).join('')
+    + '</div>'
+    + '<div style="font-size:10px;font-weight:600;color:var(--red);font-family:var(--mono);margin:6px 0 4px;">SIGNAUX NÉGATIFS</div>'
+    + '<div class="signal-grid">'
+    + SIGNAUX_NEG.map(function(s, i) {
+        return '<label class="signal-item" id="' + eid + '_n' + i + '" onclick="crmSignalToggle(this)">'
+          + '<input type="checkbox" style="pointer-events:none"/> ' + s + '</label>';
+      }).join('')
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">'
+    + '<span style="font-size:10px;color:var(--muted);font-family:var(--mono);">Intérêt perçu :</span>'
+    + [1,2,3,4,5].map(function(n) {
+        return '<button onclick="crmSetInteretPercu(\'' + pid + '\',\'' + entry_idx + '\',' + n + ',this)" '
+          + 'style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:11px;">' + n + '</button>';
+      }).join('')
+    + '</div></div>';
+}
+
+function crmSignalToggle(el) {
+  var chk = el.querySelector('input');
+  if(!chk) return;
+  chk.checked = !chk.checked;
+  if(chk.checked) {
+    el.classList.add(el.id.indexOf('_p') >= 0 ? 'on-pos' : 'on-neg');
+  } else {
+    el.classList.remove('on-pos','on-neg');
+  }
+}
+
+function crmSetInteretPercu(pid, idx, n, btn) {
+  var p = crmDB.find(function(x) { return x.id === pid; }); if(!p) return;
+  if(p.journal && p.journal[parseInt(idx)]) {
+    p.journal[parseInt(idx)].interet = n;
+    crmSave();
+  }
+  // Mettre à jour le score de priorité
+  crmUpdateScore(pid);
+  // Feedback visuel
+  var parent = btn.parentNode;
+  if(parent) parent.querySelectorAll('button').forEach(function(b, i) {
+    b.style.background = (i + 1) <= n ? 'var(--accent)' : 'var(--bg)';
+    b.style.color      = (i + 1) <= n ? '#fff' : 'var(--text)';
+  });
+}
+
+// ── SCORE DE PRIORITÉ DYNAMIQUE ───────────────────────────────
+function crmCalcScore(p) {
+  var score = 0;
+  var td = today();
+
+  // Statut
+  var statScore = {client:50, chaud:40, tiede:25, froid:10, veille:5};
+  score += statScore[p.statut] || 10;
+
+  // Ancienneté dernier contact
+  if(p.nextDate) {
+    var dl = Math.round((new Date(td) - new Date(p.nextDate)) / 86400000);
+    if(dl > 30) score += 20;
+    else if(dl > 14) score += 10;
+    else if(dl > 0) score += 5;
+    // Retard = urgence
+    if(p.nextDate < td) score += 15;
+  }
+
+  // Besoins ouverts
+  var besoins = (p.besoins||[]).filter(function(b) {
+    return !b.clos && (b.statut==='ouvert'||b.statut==='encours');
+  });
+  score += besoins.length * 15;
+
+  // Profils dispo correspondants
+  var met = nrm(p.metier||'').split(' ')[0];
+  if(met) {
+    var vivierMatch = candsDB.filter(function(c) {
+      return c.dispo==='dispo' && nrm(c.qualif||'').indexOf(met) >= 0;
+    }).length;
+    score += vivierMatch * 10;
+  }
+
+  // Intérêt perçu moyen (journal)
+  var interets = (p.journal||[]).filter(function(j) { return j.interet; }).map(function(j) { return j.interet; });
+  if(interets.length) {
+    var moy = interets.reduce(function(s,v){ return s+v; },0) / interets.length;
+    score += Math.round(moy * 5);
+  }
+
+  // Météo
+  var meteoScore = {serein:10, neutre:5, reserve:0, tendu:-10, froid2:-15};
+  score += meteoScore[p.meteo] || 0;
+
+  return Math.max(0, Math.min(100, score));
+}
+
+function crmUpdateScore(pid) {
+  var p = crmDB.find(function(x) { return x.id === pid; }); if(!p) return;
+  p.score_priorite = crmCalcScore(p);
+  crmSave();
+}
+
+function crmUpdateAllScores() {
+  crmDB.forEach(function(p) { p.score_priorite = crmCalcScore(p); });
+  crmSave();
+}
+
+// ── HISTORIQUE PRIX NÉGOCIÉS ──────────────────────────────────
+function crmPrixHistoHtml(p) {
+  var hist = p.prix_negocie || [];
+  if(!hist.length) return '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">Aucun prix enregistré</div>';
+  return hist.map(function(h) {
+    return '<div class="prix-row">'
+      + '<span>' + esc(h.qualif||'—') + '</span>'
+      + '<span>' + esc(h.tc||'—') + '€/h</span>'
+      + '<span style="color:var(--muted)">' + fmt(h.date) + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function crmAddPrixNegocie(pid, qualif, tc) {
+  var p = crmDB.find(function(x) { return x.id === pid; }); if(!p) return;
+  if(!p.prix_negocie) p.prix_negocie = [];
+  p.prix_negocie.unshift({qualif:qualif, tc:tc, date:today()});
+  p.prix_negocie = p.prix_negocie.slice(0,20); // garder 20 derniers
+  crmSave();
+}
+
+// ── CALCULATEUR ARGUMENT PRIX (overlay) ──────────────────────
+function crmCalcArgPrix(pid) {
+  var tdbC = {}; try{ tdbC=JSON.parse(localStorage.getItem('tdb_cfg')||'{}'); }catch(e){}
+  var tb = parseFloat(tdbC.tb||15.5);
+  var ff = parseFloat(tdbC.ff||12000);
+  var h  = parseFloat(tdbC.h||35);
+  var hM = h * 47 / 12;
+
+  var ovId = 'calcprix-overlay';
+  var existing = document.getElementById(ovId);
+  if(existing) { existing.remove(); return; }
+
+  var ov = document.createElement('div');
+  ov.id = ovId;
+  ov.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--white);border-radius:var(--r-lg);padding:18px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:600;border:2px solid var(--accent);';
+
+  ov.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:12px;">'
+    + '<div style="font-size:13px;font-weight:700;">💰 Calculateur argument prix</div>'
+    + '<button id="calcprix-close" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);">×</button>'
+    + '</div>'
+    + '<div class="cr-f"><label>TC proposé par le client (€/h)</label>'
+    + '<input type="number" id="calc-tc-inp" step="0.5" placeholder="ex: 30"/></div>'
+    + '<div id="calc-result" style="margin-top:10px;font-family:var(--mono);font-size:11px;background:var(--bg);padding:10px;border-radius:6px;">'
+    + '<span style="color:var(--muted)">Saisir un TC pour voir le calcul</span>'
+    + '</div>';
+
+  document.body.appendChild(ov);
+
+  // Events
+  document.getElementById('calcprix-close').onclick = function() { ov.remove(); };
+  document.getElementById('calc-tc-inp').addEventListener('input', function() {
+    crmCalcPrixUpdate(ovId, tb, hM, ff);
+  });
+}
+
+
+function crmCalcPrixUpdate(ovId, tb, hM, ff) {
+  var tc = parseFloat((document.getElementById('calc-tc-inp')||{}).value)||0;
+  var el = document.getElementById('calc-result'); if(!el) return;
+  if(!tc) { el.innerHTML='<span style="color:var(--muted)">Saisir un TC...</span>'; return; }
+  var coeff = Math.round(tc/tb*100)/100;
+  var ms = hM * tb * 1.64;
+  var ca = hM * tc;
+  var mb = ca - ms;
+  var mbPct = Math.round(mb/ca*1000)/10;
+  var rbe = mb - ff;
+  var ok = coeff >= 2.05;
+  var col = coeff>=2.15?'var(--green2)':coeff>=2.05?'var(--amber)':'var(--red)';
+  el.innerHTML = '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);">'
+    + '<span>Coefficient</span><span style="color:' + col + ';font-weight:700;">×' + coeff + (ok?'':' ✗') + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);">'
+    + '<span>Marge brute/heure</span><span>' + (mb/hM).toFixed(2) + '€/h (' + mbPct + '%)</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);">'
+    + '<span>Marge mensuelle</span><span>' + Math.round(mb).toLocaleString('fr-FR') + '€</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:3px 0;font-weight:700;">'
+    + '<span>RBE si 1 ETP à ce TC</span>'
+    + '<span style="color:' + (rbe>0?'var(--green2)':'var(--red)') + '">'
+    + (rbe>0?'+':'') + Math.round(rbe).toLocaleString('fr-FR') + '€</span></div>'
+    + (ok ? '' : '<div style="margin-top:6px;font-size:10px;color:var(--red);">TB max à ×2.05 : <strong>' + (tc/2.05).toFixed(2) + '€/h</strong></div>');
+}
+
+// ── DÉTECTEUR DE DOUBLONS ─────────────────────────────────────
+function crmCheckDoublon(nom) {
+  if(!nom || nom.length < 3) return null;
+  var q = nrm(nom);
+  return crmDB.find(function(p) {
+    var pn = nrm(p.nom||'');
+    // Similarité : 80%+ des mots en commun
+    var mots = q.split(' ').filter(function(m){ return m.length > 2; });
+    var match = mots.filter(function(m){ return pn.indexOf(m) >= 0; });
+    return match.length >= Math.max(1, Math.ceil(mots.length * 0.7)) && p.id !== (crmEditPid||'__none__');
+  });
+}
+
+// Brancher sur le champ nom du modal prospect
+function crmCheckDoublonLive(inp) {
+  var doublon = crmCheckDoublon(inp.value);
+  var hint = document.getElementById('crm-doublon-hint');
+  if(doublon) {
+    if(!hint) {
+      hint = document.createElement('div');
+      hint.id = 'crm-doublon-hint';
+      hint.style.cssText = 'font-size:10px;color:var(--amber);font-family:var(--mono);margin-top:3px;';
+      inp.parentNode.appendChild(hint);
+    }
+    hint.textContent = '⚠ Doublon probable : ' + doublon.nom + ' (' + doublon.statut + ')';
+  } else if(hint) {
+    hint.remove();
+  }
+}
+
+// ── CHECKLIST QUALIFICATION BESOIN ────────────────────────────
+function crmBesoinChecklistHtml() {
+  var items = [
+    {id:'qualif_ok',    l:'Qualification exacte confirmée (niveau N1→N4/ETAM)'},
+    {id:'date_ok',      l:'Date de démarrage précisée (ferme ou flexible)'},
+    {id:'duree_ok',     l:'Durée prévisionnelle définie'},
+    {id:'habilit_ok',   l:'Habilitations spécifiques identifiées'},
+    {id:'epi_ok',       l:'EPI fournis par le client confirmé'},
+    {id:'horaires_ok',  l:'Horaires précisés (standard/décalés)'},
+    {id:'tc_ok',        l:'Budget TC client obtenu ou estimé'},
+    {id:'decideur_ok',  l:'Décideur et délai de validation identifiés'},
+    {id:'chantier_ok',  l:'Adresse chantier obtenue'},
+    {id:'cross_ok',     l:'Autres corps de métier détectés (cross-sell)'},
+  ];
+  return '<div style="margin-top:10px;">'
+    + '<div style="font-size:10px;font-weight:700;color:var(--muted2);font-family:var(--mono);margin-bottom:6px;">CHECKLIST QUALIFICATION</div>'
+    + items.map(function(it) {
+        return '<label style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;cursor:pointer;">'
+          + '<input type="checkbox" id="' + it.id + '" style="width:13px;height:13px;accent-color:var(--accent)"/> '
+          + it.l + '</label>';
+      }).join('')
+    + '</div>';
+}
+
+// ── ENTONNOIR PIPELINE ────────────────────────────────────────
+function crmRenderFunnel() {
+  var stages = [
+    {k:'froid',  l:'Froid',   color:'#94a3b8'},
+    {k:'tiede',  l:'Tiède',   color:'#f59e0b'},
+    {k:'chaud',  l:'Chaud',   color:'#f97316'},
+    {k:'client', l:'Client',  color:'#22c55e'},
+  ];
+  var counts = {};
+  stages.forEach(function(s) {
+    counts[s.k] = crmDB.filter(function(p){ return p.statut===s.k; }).length;
+  });
+  var total = crmDB.length || 1;
+
+  var html = '<div class="funnel-wrap">';
+  stages.forEach(function(s, i) {
+    var cnt = counts[s.k] || 0;
+    var pct = Math.round(cnt/total*100);
+    var w = Math.max(30, 100 - i*15);
+    html += '<div class="funnel-stage" style="background:' + s.color + ';width:' + w + '%;opacity:' + (cnt>0?1:0.4) + ';">'
+      + '<span class="fs-lbl" style="color:#fff;">' + s.l + '</span>'
+      + '<span class="fs-cnt" style="color:#fff;">' + cnt + '</span>'
+      + '<span class="fs-pct">' + pct + '%</span>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  // Taux de conversion
+  var besoins = 0;
+  crmDB.forEach(function(p){ besoins += (p.besoins||[]).filter(function(b){ return b.statut==='pourvu'; }).length; });
+  var cv_envoyes = 0;
+  crmDB.forEach(function(p){ (p.besoins||[]).forEach(function(b){ cv_envoyes += (b.cvs||[]).length; }); });
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;">'
+    + '<div style="text-align:center;background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:16px;font-weight:700;font-family:var(--mono);">' + crmDB.length + '</div><div style="font-size:9px;color:var(--muted);">PROSPECTS</div></div>'
+    + '<div style="text-align:center;background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:16px;font-weight:700;font-family:var(--mono);">' + cv_envoyes + '</div><div style="font-size:9px;color:var(--muted);">CVs ENVOYÉS</div></div>'
+    + '<div style="text-align:center;background:var(--bg);border-radius:6px;padding:8px;"><div style="font-size:16px;font-weight:700;font-family:var(--mono);">' + besoins + '</div><div style="font-size:9px;color:var(--muted);">BESOINS POURVUS</div></div>'
+    + '</div>';
+  return html;
+}
+
+// ── SEGMENTATION 4 GROUPES ────────────────────────────────────
+function crmRenderSegmentation() {
+  var segs = [
+    {k:'gc',   l:'Grands comptes',     sub:'Fort potentiel · Contact hebdo',    color:'var(--purple)', test:function(p){ return p.statut==='client' && ((p.taille||'').indexOf('ETI')>=0 || (p.taille||'').indexOf('GE')>=0); }},
+    {k:'pme',  l:'PME fidèles',        sub:'À cultiver · Contact bimensuel',    color:'var(--green)',  test:function(p){ return p.statut==='client' && (p.taille||'').indexOf('PME')>=0; }},
+    {k:'opp',  l:'TPE opportunistes',  sub:'Si profil dispo · Contact mensuel', color:'var(--blue)',   test:function(p){ return p.statut!=='client' && p.statut!=='froid'; }},
+    {k:'cold', l:'Prospects froids',   sub:'Séquence auto · Peu de temps',      color:'var(--muted)',  test:function(p){ return p.statut==='froid' || p.statut==='veille'; }},
+  ];
+  var html = '<div class="seg-grid">';
+  segs.forEach(function(s) {
+    var cnt = crmDB.filter(s.test).length;
+    html += '<div class="seg-card" data-seg="'+s.k+'" onclick="crmFilterBySeg(this.dataset.seg)">'
+      + '<div class="seg-t" style="color:'+s.color+'">'+s.l+'</div>'
+      + '<div class="seg-sub">'+s.sub+'</div>'
+      + '<div class="seg-cnt" style="color:'+s.color+'">'+cnt+'</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+
+function crmFilterBySeg(seg) {
+  // Fermer l'entonnoir et filtrer le board
+  var map = {gc:'client', pme:'client', opp:'chaud', cold:'froid'};
+  var chip = document.querySelector('.chip[data-v="' + (map[seg]||'') + '"]');
+  if(chip) { crmSetChip(chip); }
+  navigateTo('crm');
+}
+
+// ── GESTION FERMETURES CLIENTS ────────────────────────────────
+function crmFermetureAlert(p) {
+  if(!p.fermetures || !p.fermetures.length) return '';
+  var td = today();
+  var actives = p.fermetures.filter(function(f) {
+    return f.debut <= td && f.fin >= td;
+  });
+  if(!actives.length) return '';
+  return '<div style="background:#FEF3C7;border:1px solid var(--amber);border-radius:6px;padding:6px 10px;font-size:10px;font-family:var(--mono);color:#92400e;margin-bottom:8px;">'
+    + '🚫 Ce client est fermé jusqu\'au ' + fmt(actives[0].fin)
+    + '</div>';
+}
+
+// ── COMPTE-RENDU APPEL RAPIDE ─────────────────────────────────
+var crCurrentPid = null;
+
+function crFloatOpen(pid) {
+  crCurrentPid = pid || crmPid || null;
+  // Peupler la datalist
+  var dl = document.getElementById('cr-dl-pros');
+  if(dl) dl.innerHTML = crmDB.map(function(p) { return '<option value="' + esc(p.nom) + '">'; }).join('');
+  // Pré-remplir si prospect ouvert
+  if(crCurrentPid) {
+    var p = crmDB.find(function(x) { return x.id === crCurrentPid; });
+    var inp = document.getElementById('cr-nom');
+    if(inp && p) inp.value = p.nom;
+  }
+  // Date prochaine action J+2 par défaut
+  var nd = document.getElementById('cr-next-date');
+  if(nd) {
+    var d = new Date(); d.setDate(d.getDate()+2);
+    nd.value = d.toISOString().slice(0,10);
+  }
+  var fab = document.getElementById('cr-float-fab');
+  var win = document.getElementById('cr-float');
+  if(fab) fab.classList.add('hidden');
+  if(win) win.classList.add('open');
+}
+
+function crFloatClose() {
+  var fab = document.getElementById('cr-float-fab');
+  var win = document.getElementById('cr-float');
+  if(fab) fab.classList.remove('hidden');
+  if(win) win.classList.remove('open');
+}
+
+function crFloatSave() {
+  var nom      = (document.getElementById('cr-nom')||{}).value||'';
+  var resultat = (document.getElementById('cr-resultat')||{}).value||'';
+  var note     = (document.getElementById('cr-note')||{}).value||'';
+  var nextDate = (document.getElementById('cr-next-date')||{}).value||'';
+
+  if(!nom && !crCurrentPid) { alert('Saisir le nom du prospect'); return; }
+
+  // Trouver ou créer le prospect
+  var pid = crCurrentPid;
+  if(!pid) {
+    var found = crmDB.find(function(p) { return nrm(p.nom||'').indexOf(nrm(nom)) >= 0; });
+    pid = found ? found.id : null;
+  }
+
+  var LABELS = {
+    interesse:'Intéressé', besoin:'Besoin exprimé',
+    rappeler:'Rappeler', messagerie:'Messagerie',
+    pas_reponse:'Pas de réponse', pas_interesse:'Pas intéressé'
+  };
+
+  if(pid) {
+    var p = crmDB.find(function(x) { return x.id === pid; }); if(!p) return;
+    if(!p.journal) p.journal = [];
+    p.journal.push({
+      type:'appel', date:today(),
+      texte:'[' + (LABELS[resultat]||resultat) + '] ' + note,
+      resultat: resultat
+    });
+    if(nextDate) { p.nextDate = nextDate; p.nextType = 'relance'; }
+    if(resultat === 'besoin') { p.statut = 'chaud'; }
+    p.tentatives_appel = (p.tentatives_appel||0) + 1;
+    crmSave();
+    // Refresh si drawer ouvert
+    if(crmPid === pid) crmRenderDrawer(pid);
+    crmRenderBoard();
+  }
+
+  crFloatClose();
+  // Reset
+  ['cr-nom','cr-note'].forEach(function(id) { var el=document.getElementById(id); if(el) el.value=''; });
+  var sel = document.getElementById('cr-resultat'); if(sel) sel.value='interesse';
+}
+
+// ── VUE PIPELINE DANS CRM ─────────────────────────────────────
+var crmViewMode = 'board'; // 'board' ou 'funnel'
+
+function crmToggleView() {
+  crmViewMode = crmViewMode === 'board' ? 'funnel' : 'board';
+  if(crmViewMode === 'funnel') crmShowFunnelView();
+  else crmRenderBoard();
+}
+
+function crmShowFunnelView() {
+  var board = document.getElementById('crm-board');
+  if(board) board.innerHTML = '<div style="padding:20px;">' + crmRenderFunnel() + '</div>';
+}
+
+// Mettre à jour les scores au chargement
+function crmInit() {
+  crmUpdateAllScores();
+  // Ajouter détection doublon sur le champ nom du modal
+  var nomInp = document.getElementById('crm-f-nom');
+  if(nomInp) nomInp.addEventListener('input', function() { crmCheckDoublonLive(this); });
+}
+
+
 // Init
 loadAll();
+crmInit();
 navigateTo('today');
 clock();
 setInterval(clock, 30000);
@@ -2139,5 +2705,39 @@ setTimeout(function() {
 setInterval(checkDailyNotifs, 3600000); // Vérifier toutes les heures
 setInterval(function(){ loadAll(); refreshBadges(); }, 20000);
 </script>
+
+<!-- FAB Compte-rendu rapide -->
+<button id="cr-float-fab" onclick="crFloatOpen()" title="Compte-rendu d'appel rapide">📞</button>
+
+<!-- Fenêtre CR rapide -->
+<div id="cr-float">
+  <div id="cr-float-hd">
+    <span>📞 Compte-rendu d'appel</span>
+    <button onclick="crFloatClose()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:14px;">×</button>
+  </div>
+  <div id="cr-float-body">
+    <div class="cr-f"><label>Prospect / Client</label>
+      <input type="text" id="cr-nom" list="cr-dl-pros" placeholder="Nom de l'entreprise…"/>
+      <datalist id="cr-dl-pros"></datalist></div>
+    <div class="cr-f"><label>Résultat</label>
+      <select id="cr-resultat">
+        <option value="interesse">Intéressé</option>
+        <option value="besoin">Besoin exprimé</option>
+        <option value="rappeler">Rappeler</option>
+        <option value="messagerie">Messagerie</option>
+        <option value="pas_reponse">Pas de réponse</option>
+        <option value="pas_interesse">Pas intéressé</option>
+      </select></div>
+    <div class="cr-f"><label>Note courte</label>
+      <textarea id="cr-note" rows="2" placeholder="ex: Chantier 93 en cours, besoin plaquiste mi-mars…"></textarea></div>
+    <div class="cr-f"><label>Prochaine action</label>
+      <input type="date" id="cr-next-date"/></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px;">
+      <button class="dr-btn" onclick="crFloatClose()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="crFloatSave()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

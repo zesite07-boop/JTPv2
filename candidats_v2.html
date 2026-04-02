@@ -210,6 +210,11 @@ textarea.f-inp{resize:vertical;min-height:60px;}
   .side-left.hide{display:none;}
   .fiche{width:100%;}
 }
+
+.btn-jour{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--mono);color:var(--muted2);transition:all .12s;}
+.btn-jour.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-etoile{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;transition:all .12s;}
+
 </style>
 </head>
 <body>
@@ -221,6 +226,7 @@ textarea.f-inp{resize:vertical;min-height:60px;}
   <div class="tb-right">
     <span id="tb-count" style="font-size:11px;color:var(--muted);font-family:var(--mono)"></span>
     <button class="btn btn-ghost btn-sm" onclick="exportCandidats()">Export</button>
+    <button class="btn btn-ghost btn-sm" onclick="openImportCV()">📄 Import CV</button>
     <button class="btn btn-primary btn-sm" onclick="openModalCand()">+ Candidat</button>
   </div>
 </div>
@@ -282,6 +288,8 @@ textarea.f-inp{resize:vertical;min-height:60px;}
     <div class="sr-item" onclick="candSetView('marge')">
       <div class="sr-dot" style="background:var(--green)"></div>Marge / Propale
     </div>
+    <div class="sr-section">Relances vivier</div>
+    <div id="sr-relances" style="font-size:10px;padding:6px 14px;"></div>
     <div class="sr-section">Outils</div>
     <div class="sr-item" onclick="openModalCand()">
       <div class="sr-dot" style="background:var(--muted)"></div>+ Candidat
@@ -512,7 +520,8 @@ function renderFicheHeader(id){
   document.getElementById('fhd-acts').innerHTML =
     '<button class="btn btn-ghost btn-sm" onclick="openModalCand(\''+id+'\')">✏ Modifier</button>'
     +'<button class="btn btn-primary btn-sm" onclick="genCVPDF(\''+id+'\')">PDF CV</button>'
-    +'<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCand(\''+id+'\')">Suppr.</button>';
+    +'<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCand(\''+id+'\')">Suppr.</button>'
+    +'<button class="btn btn-ghost btn-sm" data-id="'+id+'" onclick="genAutoEvalLink(this.dataset.id)">📊 Éval.</button>';
 
   var tabs = TABS.map(function(t){
     return '<div class="fiche-tab'+(currentFicheTab===t.id?' on':'')+'" onclick="switchTab(\''+t.id+'\')">'+t.l+'</div>';
@@ -574,6 +583,7 @@ function renderTabIdentite(c){
     + '<div class="f-field full">'+fl('Date de dispo')+'<input type="date" class="f-inp" value="'+(c.dispo_date||'')+'" onchange="saveField(\''+c.id+'\',\'dispo_date\',this.value)"/></div>'
     + '<div class="f-field full">'+fl('Notes')+'<textarea class="f-inp" onblur="saveField(\''+c.id+'\',\'notes\',this.value)">'+esc(c.notes||'')+'</textarea></div>'
     + '</div></div>'
+    + renderDispoGranulaire(c)
     + '<div class="f-section"><div class="f-section-t">Score fiabilité</div>'
     + renderScore(c)
     + '</div>';
@@ -892,7 +902,8 @@ function renderTabHistorique(c){
   });
   if(hist.length) tc_moy = Math.round(tc_moy/hist.length*10)/10;
 
-  return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">'
+  return renderHistoriqueRefus(c)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">'
     + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+hist.length+'</div><div style="font-size:10px;color:var(--muted)">Missions réalisées</div></div>'
     + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+tc_moy+'€</div><div style="font-size:10px;color:var(--muted)">TXH moyen</div></div>'
     + '<div style="background:var(--bg);border-radius:var(--r);padding:10px;"><div style="font-size:18px;font-weight:600;font-family:var(--mono)">'+(ca_total>1000?Math.round(ca_total/100)/10+'k':'~'+Math.round(ca_total))+'€</div><div style="font-size:10px;color:var(--muted)">CA estimé total</div></div>'
@@ -1083,6 +1094,357 @@ document.addEventListener('keydown', function(e){
   if(e.key==='Escape') closeModalCand();
 });
 
+
+// ═══════════════════════════════════════════════════════
+// CANDIDATS — FONCTIONS MANQUANTES
+// ═══════════════════════════════════════════════════════
+
+// ── 1. DISPONIBILITÉ GRANULAIRE ───────────────────────────────
+function renderDispoGranulaire(c) {
+  var cid = c.id;
+  var dg = c.dispo_granulaire || {};
+  var jours = ['L','M','Me','J','V','S'];
+  var joursKeys = ['lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+  var joursHtml = '<div style="display:flex;gap:4px;">';
+  jours.forEach(function(j, i) {
+    var k = joursKeys[i];
+    var on = dg[k] !== false;
+    joursHtml += '<button class="btn-jour' + (on?' on':'') + '" '
+      + 'data-cid="' + cid + '" data-jour="' + k + '" onclick="toggleJour(this)">' + j + '</button>';
+  });
+  joursHtml += '</div>';
+
+  var tempPartiel = dg.temps_partiel || 'Temps plein';
+  var grandsDep   = dg.grands_dep   || 'Non';
+  var tpOpts = ['Temps plein','Mi-temps','3/4 temps','Temps partiel variable'];
+  var gdOpts = ['Non','Selon mission','Oui'];
+
+  var tpSel = '<select class="f-inp" data-cid="' + cid + '" data-field="temps_partiel" onchange="saveDispoGranulaireEl(this)">'
+    + tpOpts.map(function(v){ return '<option'+(tempPartiel===v?' selected':'')+'>'+v+'</option>'; }).join('')
+    + '</select>';
+  var gdSel = '<select class="f-inp" data-cid="' + cid + '" data-field="grands_dep" onchange="saveDispoGranulaireEl(this)">'
+    + gdOpts.map(function(v){ return '<option'+(grandsDep===v?' selected':'')+'>'+v+'</option>'; }).join('')
+    + '</select>';
+
+  return '<div class="f-section"><div class="f-section-t">Disponibilité détaillée</div>'
+    + '<div style="margin-bottom:8px;">'
+    + '<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:6px;">JOURS DISPONIBLES</div>'
+    + joursHtml + '</div>'
+    + '<div class="f-grid">'
+    + '<div class="f-field"><label>Heure début min</label>'
+    + '<input type="time" class="f-inp" value="' + (dg.heure_debut||'07:00') + '" '
+    + 'data-cid="' + cid + '" data-field="heure_debut" onchange="saveDispoGranulaireEl(this)"/></div>'
+    + '<div class="f-field"><label>Heure fin max</label>'
+    + '<input type="time" class="f-inp" value="' + (dg.heure_fin||'18:00') + '" '
+    + 'data-cid="' + cid + '" data-field="heure_fin" onchange="saveDispoGranulaireEl(this)"/></div>'
+    + '<div class="f-field"><label>Temps partiel</label>' + tpSel + '</div>'
+    + '<div class="f-field"><label>Grands déplacements</label>' + gdSel + '</div>'
+    + '</div></div>';
+}
+
+function saveDispoGranulaireEl(el) {
+  saveDispoGranulaire(el.dataset.cid, el.dataset.field, el.value);
+}
+
+
+
+function toggleJour(btn) {
+  var cid = btn.dataset.cid;
+  var jour = btn.dataset.jour;
+  btn.classList.toggle('on');
+  saveDispoGranulaire(cid, jour, btn.classList.contains('on'));
+}
+
+function saveDispoGranulaire(cid, field, val) {
+  var c = DB.find(function(x){ return x.id === cid; }); if(!c) return;
+  if(!c.dispo_granulaire) c.dispo_granulaire = {};
+  c.dispo_granulaire[field] = val;
+  candSave();
+}
+
+// ── 2. HISTORIQUE DES REFUS ───────────────────────────────────
+function renderHistoriqueRefus(c) {
+  var cid = c.id;
+  var refus = c.refus_missions || [];
+  var refusHtml = '';
+  refus.forEach(function(r, i) {
+    refusHtml += '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="flex:1">'
+      + '<div style="font-size:12px;font-weight:500;">'+esc(r.client||'—')+' — '+esc(r.qualif||'—')+'</div>'
+      + '<div style="font-size:10px;color:var(--muted);font-family:var(--mono);">'+fmt(r.date)+' · '+esc(r.motif||'—')+'</div>'
+      + '</div>'
+      + '<button style="color:var(--muted);background:none;border:none;cursor:pointer;font-size:13px;" '
+      + 'data-cid="'+cid+'" data-idx="'+i+'" onclick="delRefus(this.dataset.cid,parseInt(this.dataset.idx))">×</button>'
+      + '</div>';
+  });
+  if(!refusHtml) refusHtml = '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">Aucun refus enregistré</div>';
+
+  var motifs = ['Taux insuffisant','Trop loin','Client connu négativement','Période non souhaitée','Profil ne correspond pas','Autre'];
+  var motifOpts = motifs.map(function(m){ return '<option>'+m+'</option>'; }).join('');
+
+  return '<div class="f-section"><div class="f-section-t">Historique des refus de mission</div>'
+    + refusHtml
+    + '<div style="display:grid;grid-template-columns:1.5fr 1.5fr 2fr auto;gap:6px;margin-top:10px;align-items:end;">'
+    + '<div class="f-field"><label>Client</label><input type="text" class="f-inp" id="ref-client-'+cid+'" placeholder="Nom client"/></div>'
+    + '<div class="f-field"><label>Qualification</label><input type="text" class="f-inp" id="ref-qualif-'+cid+'" placeholder="ex: Plaquiste N3"/></div>'
+    + '<div class="f-field"><label>Motif</label><select class="f-inp" id="ref-motif-'+cid+'">'
+    + motifOpts + '</select></div>'
+    + '<div><button class="btn btn-primary btn-sm" style="margin-top:16px;" data-cid="'+cid+'" onclick="addRefus(this.dataset.cid)">+ Log</button></div>'
+    + '</div></div>';
+}
+
+
+
+function addRefus(cid) {
+  var c = DB.find(function(x){ return x.id === cid; }); if(!c) return;
+  var client = (document.getElementById('ref-client-'+cid)||{value:''}).value.trim();
+  var qualif = (document.getElementById('ref-qualif-'+cid)||{value:''}).value.trim();
+  var motif  = (document.getElementById('ref-motif-'+cid)||{value:''}).value;
+  if(!client) { alert('Saisir le nom du client'); return; }
+  if(!c.refus_missions) c.refus_missions = [];
+  c.refus_missions.push({client:client, qualif:qualif, motif:motif, date:today()});
+  candSave(); renderFicheTab(cid, 'historique');
+}
+
+function delRefus(cid, idx) {
+  var c = DB.find(function(x){ return x.id === cid; }); if(!c) return;
+  c.refus_missions.splice(idx, 1);
+  candSave(); renderFicheTab(cid, 'historique');
+}
+
+// ── 3. AUTO-ÉVALUATION INTÉRIMAIRE ───────────────────────────
+function genAutoEvalLink(cid) {
+  // Génère un formulaire d'auto-évaluation inline (pas de serveur)
+  var c = DB.find(function(x){ return x.id === cid; }); if(!c) return;
+  var modal = document.getElementById('modal-autoeval');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-autoeval';
+    modal.className = 'modal-ov';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = '<div class="modal-box" style="max-width:480px;">'
+    + '<h3>Auto-évaluation — ' + esc((c.prenom||'')+' '+(c.nom||'')) + '</h3>'
+    + '<div style="font-size:11px;color:var(--muted2);margin-bottom:14px;">Mission chez ' + esc((c.mission&&c.mission.client)||'—') + '</div>'
+    + evalQuestion('ae-cdt', 'Conditions de travail')
+    + evalQuestion('ae-enc', 'Rapport avec l\'encadrement')
+    + evalQuestion('ae-sec', 'Sécurité sur le chantier')
+    + '<div class="f-row"><label>Souhait de renouvellement chez ce client ?</label>'
+    + '<select class="f-inp" id="ae-renouvellement"><option value="oui">Oui</option><option value="non">Non</option><option value="selon">Selon la mission</option></select></div>'
+    + '<div class="f-row"><label>Points à signaler (incidents, problèmes…)</label>'
+    + '<textarea class="f-inp" id="ae-incidents" rows="2" placeholder="Facultatif…"></textarea></div>'
+    + '<div class="modal-foot">'
+    + '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'modal-autoeval\').classList.remove(\'open\')">Annuler</button>'
+    + '<button class="btn btn-primary btn-sm" data-cid="' + cid + '" onclick="saveAutoEval(this.dataset.cid)">Enregistrer</button>'
+    + '</div></div>';
+  modal.classList.add('open');
+}
+
+function evalQuestion(id, label) {
+  return '<div class="f-row"><label>' + label + '</label>'
+    + '<div style="display:flex;gap:6px;">'
+    + [1,2,3,4,5].map(function(n) {
+        return '<button class="btn-etoile" data-id="' + id + '" data-n="' + n + '" onclick="evalSetNote(this)"'
+          + ' style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:14px;">'+n+'</button>';
+      }).join('')
+    + '</div></div>';
+}
+
+function evalSetNote(btn) {
+  var id = btn.dataset.id;
+  var n  = parseInt(btn.dataset.n);
+  document.querySelectorAll('[data-id="'+id+'"]').forEach(function(b, i) {
+    b.style.background = (i+1) <= n ? 'var(--amber)' : 'var(--bg)';
+    b.style.color      = (i+1) <= n ? '#fff' : 'var(--text)';
+    b.dataset.selected = (i+1) <= n ? '1' : '0';
+  });
+  btn.parentNode.dataset.note = n;
+}
+
+function saveAutoEval(cid) {
+  var c = DB.find(function(x){ return x.id === cid; }); if(!c) return;
+  var getNoteFromGroup = function(id) {
+    var btns = document.querySelectorAll('[data-id="'+id+'"]');
+    for(var i = btns.length-1; i >= 0; i--) {
+      if(btns[i].dataset.selected === '1') return i+1;
+    }
+    return 0;
+  };
+  var eval_data = {
+    date: today(),
+    client: (c.mission&&c.mission.client)||'',
+    conditions: getNoteFromGroup('ae-cdt'),
+    encadrement: getNoteFromGroup('ae-enc'),
+    securite: getNoteFromGroup('ae-sec'),
+    renouvellement: (document.getElementById('ae-renouvellement')||{value:''}).value,
+    incidents: (document.getElementById('ae-incidents')||{value:''}).value,
+  };
+  if(!c.auto_evals) c.auto_evals = [];
+  c.auto_evals.push(eval_data);
+  candSave();
+  document.getElementById('modal-autoeval').classList.remove('open');
+  renderFicheTab(cid, 'historique');
+}
+
+// ── 4. IMPORT CV (parsing texte) ─────────────────────────────
+function openImportCV() {
+  var modal = document.getElementById('modal-importcv');
+  if(!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-importcv';
+    modal.className = 'modal-ov';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = '<div class="modal-box" style="max-width:560px;">'
+    + '<h3>Import CV — Parsing automatique</h3>'
+    + '<div style="font-size:11px;color:var(--muted2);margin-bottom:12px;">Coller le texte brut du CV — les champs seront pré-remplis automatiquement</div>'
+    + '<div class="f-row"><label>Texte du CV</label>'
+    + '<textarea class="f-inp" id="cv-text-raw" rows="10" placeholder="Coller le CV ici..."></textarea></div>'
+    + '<div class="modal-foot">'
+    + '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'modal-importcv\').classList.remove(\'open\')">Annuler</button>'
+    + '<button class="btn btn-primary btn-sm" onclick="parseCV()">🔍 Parser le CV</button>'
+    + '</div></div>';
+  modal.classList.add('open');
+}
+
+function parseCV() {
+  var txt = (document.getElementById('cv-text-raw')||{value:''}).value;
+  if(!txt.trim()) { alert('Coller le texte du CV'); return; }
+
+  // Parsing heuristique basé sur les patterns BTP
+  var result = {};
+
+  // Nom/Prénom — première ligne souvent
+  var lines = txt.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  if(lines.length) {
+    var first = lines[0].match(/^([A-ZÀ-Ü][a-zà-ü]+)\s+([A-ZÀ-Ü][a-zà-ü]+)$/);
+    if(first) { result.prenom = first[1]; result.nom = first[2]; }
+    else {
+      var upper = lines[0].match(/^([A-ZÀ-Ü]+)\s+([A-ZÀ-Ü]+)$/);
+      if(upper) {
+        result.nom = upper[1].charAt(0)+upper[1].slice(1).toLowerCase();
+        result.prenom = upper[2].charAt(0)+upper[2].slice(1).toLowerCase();
+      }
+    }
+  }
+
+  // Téléphone
+  var tel = txt.match(/(?:0|\+33)[\s.-]?[1-9](?:[\s.-]?\d{2}){4}/);
+  if(tel) result.tel = tel[0].replace(/[\s.-]/g,'');
+
+  // Email
+  var email = txt.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if(email) result.email = email[0];
+
+  // CP/Ville IDF
+  var cp = txt.match(/\b(75|77|78|91|92|93|94|95)\d{3}\b/);
+  if(cp) result.cp = cp[0];
+
+  // Qualif BTP — dictionnaire simplifié
+  var QUALIF_PATTERNS = [
+    {re:/plaquist|plaquette/i, q:'Plaquiste'},
+    {re:/platr|plâtr/i, q:'Platrerie / Staff'},
+    {re:/staffeur|staf|stuc/i, q:'Staffeur / Stuqueur'},
+    {re:/peintr/i, q:'Peintre en batiment'},
+    {re:/électricien|electricien/i, q:'Electricien CFO'},
+    {re:/plombier|plomberie/i, q:'Plombier Sanitaire'},
+    {re:/maçon|macon/i, q:'Macon'},
+    {re:/coffreur|coffrage/i, q:'Coffreur-Bancheur'},
+    {re:/carrel/i, q:'Carreleur'},
+    {re:/menuisier|menuiserie/i, q:'Menuisier Poseur'},
+    {re:/chef.?équipe|chef.?equipe/i, q:"Chef Equipe"},
+    {re:/conducteur.?travaux/i, q:'Conducteur de Travaux'},
+    {re:/CVC|climatisation/i, q:'Technicien CVC'},
+  ];
+  for(var i = 0; i < QUALIF_PATTERNS.length; i++) {
+    if(QUALIF_PATTERNS[i].re.test(txt)) { result.qualif = QUALIF_PATTERNS[i].q; break; }
+  }
+
+  // Niveau
+  var niveau = txt.match(/\bN([1-4])\b|\bniveau\s*([1-4])\b/i);
+  if(niveau) result.niveau = 'N' + (niveau[1]||niveau[2]);
+
+  // Expérience en années
+  var exp = txt.match(/(\d+)\s*ans?\s*(?:d'|d'|de\s+)?expérience/i);
+  if(exp) result.exp_annees = exp[1];
+
+  // Pré-remplir le modal candidat
+  openModalCand();
+  var fmap = {'mc-nom':'nom','mc-prenom':'prenom','mc-tel':'tel',
+    'mc-email':'email','mc-cp':'cp','mc-qualif':'qualif','mc-niveau':'niveau'};
+  Object.keys(fmap).forEach(function(fid) {
+    var el = document.getElementById(fid); if(!el) return;
+    var val = result[fmap[fid]];
+    if(val) el.value = val;
+  });
+
+  document.getElementById('modal-importcv').classList.remove('open');
+}
+
+// ── 5. RELANCES AUTOMATIQUES VIVIER ──────────────────────────
+function checkRelancesVivier() {
+  var suggestions = [];
+  var td = today();
+
+  DB.forEach(function(c) {
+    // Candidat dispo sans contact depuis 15 jours
+    if(c.dispo === 'dispo') {
+      var lastContact = null;
+      if(c.journal && c.journal.length) {
+        lastContact = c.journal[c.journal.length-1].date;
+      }
+      var dl = lastContact ? Math.round((new Date(td)-new Date(lastContact))/86400000) : 999;
+      if(dl >= 15) {
+        suggestions.push({
+          type:'relance_dispo',
+          cid: c.id,
+          label: (c.prenom||'')+' '+(c.nom||''),
+          qualif: c.qualif||'',
+          message: 'Pas de contact depuis ' + dl + 'j — dispo toujours valide ?',
+          tel: c.tel||''
+        });
+      }
+    }
+
+    // VM expire dans 30 jours
+    if(c.vm_date) {
+      var dlVM = Math.round((new Date(c.vm_date)-new Date(td))/86400000);
+      if(dlVM >= 0 && dlVM <= 30) {
+        suggestions.push({
+          type:'vm_expiration',
+          cid: c.id,
+          label: (c.prenom||'')+' '+(c.nom||''),
+          qualif: c.qualif||'',
+          message: 'VM expire dans ' + dlVM + 'j',
+          tel: c.tel||''
+        });
+      }
+    }
+  });
+
+  return suggestions;
+}
+
+function renderRelancesVivier() {
+  var suggestions = checkRelancesVivier();
+  if(!suggestions.length) return '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">Aucune relance suggérée</div>';
+
+  return suggestions.map(function(s) {
+    var icon = s.type === 'vm_expiration' ? '🏥' : '📞';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">'
+      + '<span style="font-size:14px;">' + icon + '</span>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:12px;font-weight:500;">' + esc(s.label) + ' — ' + esc(s.qualif) + '</div>'
+      + '<div style="font-size:10px;color:var(--muted);">' + esc(s.message) + '</div>'
+      + '</div>'
+      + (s.tel ? '<a href="tel:' + s.tel + '" style="font-size:10px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;color:var(--accent);text-decoration:none;">📞</a>' : '')
+      + '<button class="btn btn-ghost btn-sm" style="font-size:10px;" data-cid="' + s.cid + '" onclick="candOpenFiche(this.dataset.cid)">Voir</button>'
+      + '</div>';
+  }).join('');
+}
+
+
 loadData();
 
 // Récupérer filtre CRM si vient du module CRM
@@ -1108,6 +1470,13 @@ loadData();
     }
   } catch(e) {}
 })();
+
+// Init relances vivier
+(function(){
+  var el=document.getElementById('sr-relances');
+  if(el) el.innerHTML=renderRelancesVivier();
+})();
+
 
 candRenderList();
 </script>
